@@ -18,6 +18,11 @@ Can the DT be used as a booster for other learners in a reinforcement learning s
 python -m venv ./venv
 source venv/bin/activate
 ```
+To activate the venv on Windows:
+```
+venv\scripts\activate.bat
+```
+
 3. Make sure pip is updated: `pip install --upgrade pip`
 4. Install dependencies from requirements file: `pip install -r requirements.txt`
 5. Launch the random agent (basic) with: `python main.py`
