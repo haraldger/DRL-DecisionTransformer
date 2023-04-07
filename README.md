@@ -10,3 +10,21 @@ In this research project, we investigate whether the DT can be used as a booster
 Can the DT effectively learn from the expert dataset of trajectories to outperform other learners?
 How do the hyperparameters of the DT affect its performance, and can we identify optimal hyperparameters?
 Can the DT be used as a booster for other learners in a reinforcement learning setting, and does it provide a performance gain over the baseline learners?
+
+## Getting Started
+1. Clone our repository with `git clone git@github.com:haraldger/DRL-DecisionTransformer.git` (preferred) or with `git clone https://github.com/haraldger/DRL-DecisionTransformer.git` to a desired directory. Navigate to the directory: `cd DRL-DecisionTransformer`.
+2. (Recommended) Create a virtual environment for package management and separation. In the project directory
+```
+python -m venv ./venv
+source venv/bin/activate
+```
+3. Make sure pip is updated: `pip install --upgrade pip`
+4. Install dependencies from requirements file: `pip install -r requirements.txt`
+5. Launch the random agent (basic) with: `python main.py`
+
+
+## For development:
+To add dependencies, follow these steps:
+1. Make sure you are working on a virtual environment, with only the dependencies of the project installed.
+2. To list installed packages: `pip freeze`
+3. When the new required package is installed through pip, run: `pip freeze > requirements.txt`.
