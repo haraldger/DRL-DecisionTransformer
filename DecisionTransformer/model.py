@@ -15,9 +15,9 @@ class MaskedAttentionHead(nn.Module):
         self.embedding_dim = embedding_dim
 
         # Weights for keys, queries and values, in a batch
-        self.w_attention = nn.Linear(embedding_dim, num_heads*3*embedding_dim)
+        self.w_attention = nn.Linear(embedding_dim, num_heads * 3 * embedding_dim)
         self.softmax = nn.Softmax(dim=-1)
-        # self.w_output = nn.Linear()
+        self.w_output = nn.Linear(num_heads * embedding_dim, embedding_dim)
 
     def forward(self, x):
         """
@@ -41,30 +41,42 @@ class MaskedAttentionHead(nn.Module):
         V = V.contiguous().view((-1, self.num_heads, x.shape[1], self.embedding_dim))
 
 
-        # # Attention
+        # Attention
         # (bs x nh x sql x edim) * (bs x nh x edim x sql) -> (bs x nh x sql x sql)
         compatibility = Q @ torch.transpose(K, -1, -2)   
         scaled_compatibility = torch.divide(compatibility, math.sqrt(self.embedding_dim))
-        attention_scores = self.softmax(scaled_compatibility)
+        mask = torch.ones_like(scaled_compatibility) * float('-inf')
+        mask = torch.triu(mask, 1)
+        masked_compatibility = scaled_compatibility + mask 
+        attention_scores = self.softmax(masked_compatibility)
 
         # Output
         output = attention_scores @ V   # (bs x nh x sql x sql) * (bs x nh x sql x edim) -> (bs x nh x sql x edim)
-        # TODO: apply attention head weights
-        print(output.shape)
+        output = output.contiguous().view((-1, x.shape[1], self.num_heads * self.embedding_dim))
+        output = self.w_output(output)
 
-        return None
+        return output
 
 
 class DecisionTransformer(nn.Module):
     def __init__(self) -> None:
         super().__init__()
 
-bs = 1
-seq_len = 10
-n_heads = 3
-e_dim = 7
 
-net = MaskedAttentionHead(n_heads, e_dim)
-x = torch.rand(bs, seq_len, e_dim)
-x = net(x)
+def main():
+    # Test masked attention module
+    bs = 1
+    nh = 3
+    sql = 10 
+    edim = 7
 
+    x = torch.randn((bs, sql, edim))
+
+    net = MaskedAttentionHead(nh, edim)
+    o = net(x)
+    print(f'Out: {o}')
+    print(f'Out shape: {o.shape}')
+
+
+if __name__ == '__main__':
+    main()
