@@ -2,7 +2,7 @@ import numpy
 import math
 import torch 
 from torch import nn
-import Agent
+from .agent import Agent
 
 class MaskedAttentionHead(nn.Module):
     def __init__(self, num_heads, embedding_dim, *args, **kwargs) -> None:
@@ -47,5 +47,5 @@ class DTAgent(Agent):
         super().__init__(env)
         self.model = DecisionTransformer()
 
-    def act(self, observation, reward, done):
-        raise NotImplementedError
+    def act(self, state):
+        return self.env.action_space.sample()
