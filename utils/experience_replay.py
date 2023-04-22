@@ -2,11 +2,12 @@ import sys
 import numpy as np
 import random
 import torch
+import constants
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class ReplayBuffer:
-    def __init__(self, capacity=40000, dims=(84,84,3)):
+    def __init__(self, capacity=constants.REPLAY_MEMORY_SIZE, dims=constants.DIMENSIONS):
         """
         Replay memory for DQN.
         Stores state, action, next state and reward tuples.

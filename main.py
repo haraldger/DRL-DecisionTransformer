@@ -2,16 +2,18 @@ import sys
 import argparse
 import time
 import gym
-from utils import experience_replay
+from utils import experience_replay, constants
 from Agents import dt_agent, random_agent, dqn_agent
 
-CONFIG = dict()
+config = dict()
 agent = None
 env = None
 replay_buffer = None
 
 
 def main():
+
+    # Parse arguments
     parser = argparse.ArgumentParser(
         description='Playing MsPacman with Reinforcement Learning agents.')
     parser.add_argument('-a', '--agent', choices=['random', 'dqn', 'dt'], type=str, default='random', help='Agent to use')
@@ -21,27 +23,38 @@ def main():
     
     args = parser.parse_args()
 
-    CONFIG['agent'] = args.agent
-    CONFIG['train'] = args.train
-    CONFIG['num_episodes'] = args.num_episodes
-    CONFIG['verbose'] = args.verbose
+
+
+    # Set configuration
+    global config
+    config['agent'] = args.agent
+    config['train'] = args.train
+    config['num_episodes'] = args.num_episodes
+    config['verbose'] = args.verbose
 
     if args.agent == 'random':
-        CONFIG['experience_replay'] = False
+        config['experience_replay'] = False
     elif args.agent == 'dqn':
-        CONFIG['experience_replay'] = True
+        config['experience_replay'] = True
     elif args.agent == 'dt':
-        CONFIG['experience_replay'] = False
+        config['experience_replay'] = False
     else:
         print('Invalid agent')
         sys.exit()
 
+
+    # Load constants
+    config.update(constants.load())
+
+
+    # Initialize environment
     global env 
     env = gym.make('ALE/MsPacman-v5')
 
     print('Playing MsPacman with {} agent'.format(args.agent))
     print('Mode: {}'.format('train' if args.train else 'evaluation'))
 
+    # Run
     run()
 
 
@@ -54,21 +67,21 @@ def run():
     # Initialize objects
 
     global agent
-    if CONFIG['agent'] == 'random':
+    if config['agent'] == 'random':
         agent = random_agent.RandomAgent(env)
-    elif CONFIG['agent'] == 'dqn':
+    elif config['agent'] == 'dqn':
         agent = dqn_agent.DQNAgent(env)
-    elif CONFIG['agent'] == 'dt':
+    elif config['agent'] == 'dt':
         agent = dt_agent.DTAgent(env)
 
     global replay_buffer
-    if CONFIG['experience_replay'] and CONFIG['train']:
+    if config['experience_replay'] and config['train']:
         replay_buffer = experience_replay.ExperienceReplay()
 
 
     # Training loop
 
-    for i in range(CONFIG['num_episodes']):
+    for i in range(config['num_episodes']):
         episode_reward = 0
 
         # Skip inactive frames
@@ -80,14 +93,14 @@ def run():
             next_state, reward, done, info, _ = env.step(action)
             episode_reward += reward
             
-            if CONFIG['experience_replay']:
+            if config['experience_replay']:
                 experience_replay.add(state, action, reward, done)
 
             state = next_state
 
         state, _ = env.reset()
-        if CONFIG['verbose'] and i % 1000 == 0:
-            print('Episode: {}/{}. Reward: {}'.format(i, CONFIG['num_episodes'], episode_reward))
+        if config['verbose'] and i % 1000 == 0:
+            print('Episode: {}/{}. Reward: {}'.format(i, config['num_episodes'], episode_reward))
 
     env.close()
 
