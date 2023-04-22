@@ -1,9 +1,6 @@
-import Agent 
-
-class DQNAgent(Agent):
+class Agent:
     def __init__(self, env):
-        super(DQNAgent, self).__init__(env)
-
+        self.env = env
 
     def act(self, observation, reward, done):
         raise NotImplementedError

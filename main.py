@@ -3,7 +3,7 @@ import argparse
 import time
 import gym
 from utils import experience_replay
-from Agents import random_agent, dqn_agent, decision_transformer
+from Agents import dt_agent, random_agent, dqn_agent
 
 CONFIG = dict()
 agent = None
@@ -51,6 +51,17 @@ def train():
     
     for i in range(inactive_frames):
         observation, _, _, _, _ = env.step(0)
+
+    global agent
+    if CONFIG['agent'] == 'random':
+        agent = random_agent.RandomAgent(env)
+    elif CONFIG['agent'] == 'dqn':
+        agent = dqn_agent.DQNAgent(env)
+    elif CONFIG['agent'] == 'dt':
+        agent = dt_agent.DTAgent(env)
+
+
+    for i in 
 
     
 
