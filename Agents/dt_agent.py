@@ -44,7 +44,7 @@ class DecisionTransformer(nn.Module):
 
 class DTAgent(Agent):
     def __init__(self, env):
-        super().__init__(env)
+        super(DTAgent, self).__init__(env)
         self.model = DecisionTransformer()
 
     def act(self, state):
