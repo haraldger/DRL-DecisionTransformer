@@ -59,6 +59,12 @@ def main():
 
 
 def run():
+    # Global objects
+    global config 
+    global agent
+    global env
+    global replay_buffer
+
     # Reset environment
     state, _ = env.reset()
     inactive_frames = 65
@@ -99,7 +105,7 @@ def run():
             state = next_state
 
         state, _ = env.reset()
-        if config['verbose'] and i % 1000 == 0:
+        if config['verbose'] and i % constants.PRINT_FREQUENCY == 0:
             print('Episode: {}/{}. Reward: {}'.format(i, config['num_episodes'], episode_reward))
 
     env.close()
