@@ -5,18 +5,9 @@ import sys
 import numpy as np
 import random
 import h5py
-import torch
 import cv2 as cv
 
-class DataCollector:
-    state_buff = []
-    reward_buff = []
-    action_buff = []
-
-    outfile_path = None
-
-    episode_count = 0
-
+class DataCollector():
     def __init__(self, out):
         self.outfile_path = out
         self.episode_count = 0
@@ -39,11 +30,6 @@ class DataCollector:
         self.action_buff.append(action)
         
         if done:
-            print("---")
-            print(len(self.state_buff))
-            print(len(self.reward_buff))
-            print(len(self.action_buff))
-
             # Write data into the outfile
             # This will be in pairs of (state, action, reward, next_stete, done)
             num_iterations = len(self.action_buff)
@@ -84,7 +70,7 @@ if __name__ == "__main__":
     states = [state0, state1, state2]
 
     actions = np.random.randint(0, action_size, size=(2))
-    rewards = np.random.randint(-5, 5, size=(2))
+    rewards = np.random.uniform(-5, 5, size=(2))
     done_vals = [False, True]
 
     collector = DataCollector(TEST_OUTPUT_FILENAME)
@@ -152,7 +138,7 @@ if __name__ == "__main__":
     
     rand_states = []
     rand_actions = np.random.randint(0, action_size, size=(traj_length))
-    rand_rewards = np.random.randint(-5, 5, size=(traj_length))
+    rand_rewards = np.random.uniform(-5, 5, size=(traj_length))
     for i in range(0,traj_length):
         if i % 100 == 99:
             print("Iteration: ", i)
