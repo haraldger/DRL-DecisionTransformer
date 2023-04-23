@@ -7,7 +7,6 @@ import random
 import h5py
 import torch
 import cv2 as cv
-import base64
 
 class DataCollector:
     state_buff = []
@@ -22,6 +21,10 @@ class DataCollector:
         self.outfile_path = out
         self.episode_count = 0
 
+        self.state_buff = []
+        self.reward_buff = []
+        self.action_buff = []
+
     def set_init_state(self, state):
         self.state_buff = [cv.imencode('.png', state)[1].tobytes()]
 
@@ -35,9 +38,12 @@ class DataCollector:
         self.reward_buff.append(reward)
         self.action_buff.append(action)
         
-        # print(len(self.state_buff))
-
         if done:
+            print("---")
+            print(len(self.state_buff))
+            print(len(self.reward_buff))
+            print(len(self.action_buff))
+
             # Write data into the outfile
             # This will be in pairs of (state, action, reward, next_stete, done)
             num_iterations = len(self.action_buff)
@@ -56,7 +62,6 @@ class DataCollector:
             self.action_buff = []
 
             self.episode_count += 1
-
 
 if __name__ == "__main__":
     # Used for testing data_collection functionality
@@ -97,7 +102,6 @@ if __name__ == "__main__":
             episode = file[ep]
             read_states_compressed = episode["states"][:]
             read_states = []
-            print(read_states_compressed.shape)
             for i in range(read_states_compressed.shape[0]):
                 read_states.append(np.frombuffer(read_states_compressed[i], dtype=np.uint8))
 
