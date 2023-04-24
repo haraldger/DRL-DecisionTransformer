@@ -16,6 +16,10 @@ class DataCollector():
         self.reward_buff = []
         self.action_buff = []
 
+        # clear/restart file
+        with h5py.File(self.outfile_path, 'w') as file:
+            pass
+
     def set_init_state(self, state):
         self.state_buff = [cv.imencode('.png', state)[1].tobytes()]
 
@@ -33,7 +37,7 @@ class DataCollector():
             # Write data into the outfile
             # This will be in pairs of (state, action, reward, next_stete, done)
             num_iterations = len(self.action_buff)
-            with h5py.File(self.outfile_path, 'w') as file:
+            with h5py.File(self.outfile_path, 'a') as file:
                 grp = file.create_group(f'episode_{self.episode_count}')
                 grp.create_dataset(f'states', data=np.array(self.state_buff), compression='gzip')
                 grp.create_dataset(f'actions', data=np.array(self.action_buff))

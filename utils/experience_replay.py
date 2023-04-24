@@ -2,7 +2,8 @@ import sys
 import numpy as np
 import random
 import torch
-from . import constants
+# from . import constants
+import constants
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
