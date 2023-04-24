@@ -1,50 +1,115 @@
 import sys
+import argparse
 import time
 import gym
-from utils import experience_replay
+from utils import experience_replay, constants
+from Agents import dt_agent, random_agent, dqn_agent
 
-env = gym.make('ALE/MsPacman-v5')
-observation, _ = env.reset()
-inactive_frames = 65
+config = dict()
+agent = None
+env = None
+replay_buffer = None
 
-memory_size = 40000
-memory = experience_replay.ReplayBuffer(capacity=memory_size, dims=observation.shape)
 
-for _ in range(inactive_frames):
-    action = 0  # noop
-    env.step(action)
+def main():
 
-for i in range(10000):
-    prev_observation = observation
-    action = env.action_space.sample()
+    # Parse arguments
+    parser = argparse.ArgumentParser(
+        description='Playing MsPacman with Reinforcement Learning agents.')
+    parser.add_argument('-a', '--agent', choices=['random', 'dqn', 'dt'], type=str, default='random', help='Agent to use')
+    parser.add_argument('-t', '--train', action='store_true', help='Train the agent')
+    parser.add_argument('-n', '--num_episodes', type=int, default=100000, help='Number of episodes to train')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Verbose mode')
+    
+    args = parser.parse_args()
 
-    # Execute new action
-    observation, reward, terminated, truncated, _ = env.step(action)
 
-    if terminated or truncated:
-        observation, info = env.reset()
 
-    # Insert into replay memory
-    memory.add(prev_observation, action, observation, reward)
+    # Set configuration
+    global config
+    config['agent'] = args.agent
+    config['train'] = args.train
+    config['num_episodes'] = args.num_episodes
+    config['verbose'] = args.verbose
 
-    if i % 1000 == 0:
-        print("Iteration: {}".format(i))
+    if args.agent == 'random':
+        config['experience_replay'] = False
+    elif args.agent == 'dqn':
+        config['experience_replay'] = True
+    elif args.agent == 'dt':
+        config['experience_replay'] = False
+    else:
+        print('Invalid agent')
+        sys.exit()
 
-# Sample from replay memory
-state_sample, action_sample, next_state_sample, reward_sample = memory.sample_tensor_batch(32)
 
-memory.show()
+    # Load constants
+    config.update(constants.load())
 
-print("State, action, next state, reward sample shapes:")
-print(state_sample.shape)
-print(action_sample.shape)
-print(next_state_sample.shape)
-print(reward_sample.shape)
 
-print("State memory, action memory, next state memory, reward memory shapes:")
-print(memory.state_memory.shape)
-print(memory.action_memory.shape)
-print(memory.next_state_memory.shape)
-print(memory.reward_memory.shape)
+    # Initialize environment
+    global env 
+    env = gym.make('ALE/MsPacman-v5')
 
-env.close()
+    print('Playing MsPacman with {} agent'.format(args.agent))
+    print('Mode: {}'.format('train' if args.train else 'evaluation'))
+
+    # Run
+    run()
+
+
+def run():
+    # Global objects
+    global config 
+    global agent
+    global env
+    global replay_buffer
+
+    # Reset environment
+    state, _ = env.reset()
+    inactive_frames = 65
+
+
+    # Initialize objects
+
+    global agent
+    if config['agent'] == 'random':
+        agent = random_agent.RandomAgent(env)
+    elif config['agent'] == 'dqn':
+        agent = dqn_agent.DQNAgent(env)
+    elif config['agent'] == 'dt':
+        agent = dt_agent.DTAgent(env)
+
+    global replay_buffer
+    if config['experience_replay'] and config['train']:
+        replay_buffer = experience_replay.ExperienceReplay()
+
+
+    # Training loop
+
+    for i in range(config['num_episodes']):
+        episode_reward = 0
+
+        # Skip inactive frames
+        for _ in range(inactive_frames):
+            state, reward, done, info, _ = env.step(0)
+
+        while not done:     # Run episode until done
+            action = agent.act(state)
+            next_state, reward, done, info, _ = env.step(action)
+            episode_reward += reward
+            
+            if config['experience_replay']:
+                experience_replay.add(state, action, reward, done)
+
+            state = next_state
+
+        state, _ = env.reset()
+        if config['verbose'] and i % constants.PRINT_FREQUENCY == 0:
+            print('Episode: {}/{}. Reward: {}'.format(i, config['num_episodes'], episode_reward))
+
+    env.close()
+
+
+if __name__ == '__main__':
+    main()
