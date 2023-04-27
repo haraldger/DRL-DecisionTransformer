@@ -5,10 +5,27 @@ from .agent import Agent
 from utils import experience_replay, epsilon_scheduler, constants
 
 class DQNAgent(Agent):
-    def __init__(self, env, replay_buffer=None, epsilon_scheduler=None):
+    def __init__(self, env, replay_buffer=None, epsilon_scheduler=None, 
+                 learning_rate=constants.DQN_LEARNING_RATE, gamma=constants.GAMMA):
         super(DQNAgent, self).__init__(env)
+
+        # Initialize networks
+
         self.target_net = DQN()
         self.policy_net = DQN()
+        self.target_net.load_state_dict(self.policy_net.state_dict())
+        self.target_net.eval()
+
+        # Hyperparameters
+
+        self.learning_rate = learning_rate
+        self.gamma = gamma
+
+        # Initialize optimizer
+
+        self.optimizer = torch.optim.Adam(self.policy_net.parameters(), lr=self.learning_rate)
+
+        # Initialize replay buffer and epsilon scheduler
 
         if replay_buffer is None:
             self.replay_buffer = experience_replay.ReplayBuffer()
@@ -16,13 +33,24 @@ class DQNAgent(Agent):
             self.replay_buffer = replay_buffer
 
         if epsilon_scheduler is None:
-            raise NotImplementedError
+            self.epsilon_scheduler = epsilon_scheduler.EpsilonScheduler()
         else:
             self.epsilon_scheduler = epsilon_scheduler
 
 
     def act(self, state):
-        return self.env.action_space.sample()
+        if np.random.rand() < self.epsilon_scheduler.get_epsilon():
+            return self.env.action_space.sample()
+        else:
+            with torch.no_grad():
+                return self.policy_net(torch.tensor(state, dtype=torch.float32)).argmax().item()
+    
+    def train(self, end_of_episode=False):
+        """
+        Perform one iteration of training.
+        This function is called once per frame when training.
+        """
+        epsilon_scheduler.step()
     
 class DQN(nn.Module):
     def __init__(self, *args, **kwargs) -> None:

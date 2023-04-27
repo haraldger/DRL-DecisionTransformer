@@ -49,3 +49,9 @@ class DTAgent(Agent):
 
     def act(self, state):
         return self.env.action_space.sample()
+    
+    def train(self, end_of_episode=False):
+        """
+        Perform one iteration of training.
+        """
+        pass

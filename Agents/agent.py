@@ -4,3 +4,6 @@ class Agent:
 
     def act(self, state):
         raise NotImplementedError
+    
+    def train(self, end_of_episode=False):
+        raise NotImplementedError

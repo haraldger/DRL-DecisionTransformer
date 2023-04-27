@@ -26,9 +26,10 @@ class ReplayBuffer:
         self.action_memory = torch.empty(size=(self.capacity,1)).type(torch.long)
         self.next_state_memory = torch.empty(size=self.state_memory_dims).type(torch.float)
         self.reward_memory = torch.empty(size=(self.capacity,1)).type(torch.float)
+        self.done_memory = torch.empty(size=(self.capacity,1)).type(torch.bool)
 
 
-    def add(self, state, action, next_state, reward):
+    def add(self, state, action, next_state, reward, done):
         """
         Replay memory takes state, action, next state and reward tuples.
         All states are passed in their raw form as they are returned by gym environemnt.
@@ -40,6 +41,7 @@ class ReplayBuffer:
         self.action_memory[idx] = torch.Tensor([action]).type(torch.long)
         self.next_state_memory[idx] = torch.from_numpy(next_state).permute(2,0,1).type(torch.float)
         self.reward_memory[idx] = torch.Tensor([reward]).type(torch.float)
+        self.done_memory[idx] = torch.Tensor([False]).type(torch.bool)
 
         # Bookkeeping
         self.counter += 1
@@ -57,8 +59,9 @@ class ReplayBuffer:
         action_sample = self.action_memory[sample_indices]
         next_state_sample = self.next_state_memory[sample_indices]
         reward_sample = self.reward_memory[sample_indices]
+        done_sample = self.done_memory[sample_indices]
 
-        return state_sample, action_sample, next_state_sample, reward_sample
+        return state_sample, action_sample, next_state_sample, reward_sample, done_sample
 
     def show(self):
         print(".....")

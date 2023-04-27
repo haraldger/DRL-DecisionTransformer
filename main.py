@@ -4,13 +4,14 @@ import time
 import gym
 import numpy as np
 import torch
-from utils import experience_replay, constants
+from utils import experience_replay, epsilon_scheduler, constants
 from Agents import dt_agent, random_agent, dqn_agent
 
 config = dict()
 agent = None
 env = None
 replay_buffer = None
+scheduler = None
 
 
 def main():
@@ -23,6 +24,8 @@ def main():
     parser.add_argument('-n', '--num_episodes', type=int, default=100000, help='Number of episodes to train')
     parser.add_argument('-v', '--verbose', action='store_true', help='Verbose mode')
     parser.add_argument('-pf', '--print_frequency', type=int, help='Frequency in episodes to print progress')
+    parser.add_argument('-lr', '--learning_rate', type=float, help='Learning rate')
+    parser.add_argument('-g', '--gamma', type=float, help='Discount factor')
     
     args = parser.parse_args()
 
@@ -37,10 +40,15 @@ def main():
     config['train'] = args.train
     config['num_episodes'] = args.num_episodes
     config['verbose'] = args.verbose
+
     if args.print_frequency:
         config['print_frequency'] = args.print_frequency
-    else:
-        config['print_frequency'] = constants.PRINT_FREQUENCY
+
+    if args.learning_rate:
+        config['learning_rate'] = args.learning_rate
+
+    if args.gamma:
+        config['gamma'] = args.gamma
 
     print("Print frequency is: ", config['print_frequency'])
 
@@ -48,6 +56,7 @@ def main():
         config['experience_replay'] = False
     elif args.agent == 'dqn':
         config['experience_replay'] = True
+        config['epsilon_scheduler'] = True
     elif args.agent == 'dt':
         config['experience_replay'] = False
     else:
@@ -81,13 +90,17 @@ def run():
     # Initialize objects
     global replay_buffer
     if config['experience_replay'] and config['train']:
-        replay_buffer = experience_replay.ReplayBuffer()
+        replay_buffer = experience_replay.ReplayBuffer(config['replay_memory_size'], config['dimensions'])
+
+    global scheduler
+    if config['epsilon_scheduler']:
+        scheduler = epsilon_scheduler.EpsilonScheduler(config['initial_epsilon'], config['final_epsilon'], config['decay_frames'], config['decay_mode'], config['decay_rate'])
 
     global agent
     if config['agent'] == 'random':
         agent = random_agent.RandomAgent(env)
     elif config['agent'] == 'dqn':
-        agent = dqn_agent.DQNAgent(env)
+        agent = dqn_agent.DQNAgent(env, replay_buffer, scheduler, config['dqn_learning_rate'], config['gamma'])
     elif config['agent'] == 'dt':
         agent = dt_agent.DTAgent(env)
 
@@ -109,9 +122,13 @@ def run():
             episode_reward += reward
             
             if config['experience_replay']:
-                replay_buffer.add(state, action, reward, done)
+                print(state)
+                replay_buffer.add(state, action, next_state, reward, done)
 
             state = next_state
+
+            if config['train']:
+                agent.train(end_of_episode=done)
 
         state, _ = env.reset()
         if config['verbose'] and i % config['print_frequency'] == 0:
@@ -125,4 +142,4 @@ def tests():
 
 
 if __name__ == '__main__':
-    tests()
+    main()
