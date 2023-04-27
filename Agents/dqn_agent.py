@@ -2,10 +2,23 @@ import numpy as np
 import torch
 from torch import nn
 from .agent import Agent
+from utils import experience_replay
 
 class DQNAgent(Agent):
-    def __init__(self, env):
+    def __init__(self, env, replay_buffer=None, epsilon_scheduler=None):
         super(DQNAgent, self).__init__(env)
+        self.target_net = DQN()
+        self.policy_net = DQN()
+
+        if replay_buffer is None:
+            self.replay_buffer = experience_replay.ReplayBuffer()
+        else:
+            self.replay_buffer = replay_buffer
+
+        if epsilon_scheduler is None:
+            raise NotImplementedError
+        else:
+            self.epsilon_scheduler = epsilon_scheduler
 
 
     def act(self, state):
@@ -64,7 +77,11 @@ class DQN_vanilla(nn.Module):
         return self.layers(x)
 
 
-# Unit tests
+
+
+################## Unit tests ##################
+
+
 def run_tests():
     test_dqn_forward_pass()
     test_dqn_vanilla_forward_pass()

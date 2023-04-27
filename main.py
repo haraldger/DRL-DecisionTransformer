@@ -79,6 +79,9 @@ def run():
 
 
     # Initialize objects
+    global replay_buffer
+    if config['experience_replay'] and config['train']:
+        replay_buffer = experience_replay.ReplayBuffer()
 
     global agent
     if config['agent'] == 'random':
@@ -88,9 +91,7 @@ def run():
     elif config['agent'] == 'dt':
         agent = dt_agent.DTAgent(env)
 
-    global replay_buffer
-    if config['experience_replay'] and config['train']:
-        replay_buffer = experience_replay.ExperienceReplay()
+    
 
 
     # Training loop
