@@ -2,6 +2,8 @@ import sys
 import argparse
 import time
 import gym
+import numpy as np
+import torch
 from utils import experience_replay, constants
 from Agents import dt_agent, random_agent, dqn_agent
 
@@ -117,5 +119,9 @@ def run():
     env.close()
 
 
+def tests():
+    dqn_agent.run_tests()
+
+
 if __name__ == '__main__':
-    main()
+    tests()
