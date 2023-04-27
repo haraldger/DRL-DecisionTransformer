@@ -1,5 +1,9 @@
+from . import constants
+
 class EpsilonScheduler:
-    def __init__(self, initial_epsilon=1.0, final_epsilon=0.01, decay_frames=1E6, decay_mode='single', decay_rate=0.1, start_frames=0) -> None:
+    def __init__(self, initial_epsilon=constants.INITIAL_EPSILON, final_epsilon=constants.FINAL_EPSILON, 
+                 decay_frames=constants.DECAY_FRAMES, decay_mode=constants.DECAY_MODE, decay_rate=constants.DECAY_RATE, 
+                 start_frames=0) -> None:
         """
         initial_epsilon (float):  Initial value of epsilon.
         final_epsilon (float): Final value of epsilon, will not decay beyond this.

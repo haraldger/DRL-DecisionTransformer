@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torch import nn
 from .agent import Agent
-from utils import experience_replay
+from utils import experience_replay, epsilon_scheduler, constants
 
 class DQNAgent(Agent):
     def __init__(self, env, replay_buffer=None, epsilon_scheduler=None):
