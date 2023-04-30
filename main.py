@@ -54,11 +54,13 @@ def main():
 
     if args.agent == 'random':
         config['experience_replay'] = False
+        config['epsilon_scheduler'] = False
     elif args.agent == 'dqn':
         config['experience_replay'] = True
         config['epsilon_scheduler'] = True
     elif args.agent == 'dt':
         config['experience_replay'] = False
+        config['epsilon_scheduler'] = False
     else:
         print('Invalid agent')
         sys.exit()
@@ -122,7 +124,6 @@ def run():
             episode_reward += reward
             
             if config['experience_replay']:
-                print(state)
                 replay_buffer.add(state, action, next_state, reward, done)
 
             state = next_state

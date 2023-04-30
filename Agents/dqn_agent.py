@@ -5,7 +5,7 @@ from .agent import Agent
 from utils import experience_replay, epsilon_scheduler, constants
 
 class DQNAgent(Agent):
-    def __init__(self, env, replay_buffer=None, epsilon_scheduler=None, 
+    def __init__(self, env, replay_buffer=None, scheduler=None, 
                  learning_rate=constants.DQN_LEARNING_RATE, gamma=constants.GAMMA):
         super(DQNAgent, self).__init__(env)
 
@@ -32,17 +32,21 @@ class DQNAgent(Agent):
         else:
             self.replay_buffer = replay_buffer
 
-        if epsilon_scheduler is None:
-            self.epsilon_scheduler = epsilon_scheduler.EpsilonScheduler()
+        if scheduler is None:
+            self.scheduler = scheduler.EpsilonScheduler()
         else:
-            self.epsilon_scheduler = epsilon_scheduler
+            self.scheduler = scheduler
 
 
     def act(self, state):
-        if np.random.rand() < self.epsilon_scheduler.get_epsilon():
+        if np.random.rand() < 0:
             return self.env.action_space.sample()
         else:
             with torch.no_grad():
+                print("Using policy network")
+                state = torch.unsqueeze(torch.tensor(state, dtype=torch.float32), 0)
+                print(state.shape)
+                raise NotImplementedError
                 return self.policy_net(torch.tensor(state, dtype=torch.float32)).argmax().item()
     
     def train(self, end_of_episode=False):
@@ -50,7 +54,7 @@ class DQNAgent(Agent):
         Perform one iteration of training.
         This function is called once per frame when training.
         """
-        epsilon_scheduler.step()
+        self.scheduler.step()
     
 class DQN(nn.Module):
     def __init__(self, *args, **kwargs) -> None:
