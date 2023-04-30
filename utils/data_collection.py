@@ -53,7 +53,7 @@ class DataCollector():
 
             self.episode_count += 1
 
-if __name__ == "__main__":
+def run_tests():
     # Used for testing data_collection functionality
     TEST_OUTPUT_FILENAME = "test_traj.h5"
     

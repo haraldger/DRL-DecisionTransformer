@@ -76,7 +76,7 @@ class DataReader(Dataset):
         return state, action, reward, next_state, done
 
 
-if __name__ == "__main__":
+def run_tests():
     # Test with file from data_collection.py
     TEST_OUTPUT_FILENAME = "test_traj_long.h5"
 
