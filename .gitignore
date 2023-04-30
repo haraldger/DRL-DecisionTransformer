@@ -278,4 +278,7 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# h5 dataset files
+*.h5
+
 # End of https://www.toptal.com/developers/gitignore/api/venv,git,python,visualstudiocode,macos,windows
