@@ -38,3 +38,5 @@ tqdm==4.65.0
 typing_extensions==4.5.0
 urllib3==1.26.15
 zipp==3.15.0
+h5py==3.8.0
+opencv-python==4.7.0.68
