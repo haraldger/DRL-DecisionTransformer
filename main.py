@@ -20,6 +20,7 @@ def main():
     parser.add_argument('-t', '--train', action='store_true', help='Train the agent')
     parser.add_argument('-n', '--num_episodes', type=int, default=100000, help='Number of episodes to train')
     parser.add_argument('-v', '--verbose', action='store_true', help='Verbose mode')
+    parser.add_argument('-pf', '--print_frequency', type=int, help='Frequency in episodes to print progress')
     
     args = parser.parse_args()
 
@@ -27,10 +28,19 @@ def main():
 
     # Set configuration
     global config
+    config.update(constants.load())     # Load constants
+
+    # Set configuration based on arguments
     config['agent'] = args.agent
     config['train'] = args.train
     config['num_episodes'] = args.num_episodes
     config['verbose'] = args.verbose
+    if args.print_frequency:
+        config['print_frequency'] = args.print_frequency
+    else:
+        config['print_frequency'] = constants.PRINT_FREQUENCY
+
+    print("Print frequency is: ", config['print_frequency'])
 
     if args.agent == 'random':
         config['experience_replay'] = False
@@ -41,10 +51,6 @@ def main():
     else:
         print('Invalid agent')
         sys.exit()
-
-
-    # Load constants
-    config.update(constants.load())
 
 
     # Initialize environment
@@ -100,12 +106,12 @@ def run():
             episode_reward += reward
             
             if config['experience_replay']:
-                experience_replay.add(state, action, reward, done)
+                replay_buffer.add(state, action, reward, done)
 
             state = next_state
 
         state, _ = env.reset()
-        if config['verbose'] and i % constants.PRINT_FREQUENCY == 0:
+        if config['verbose'] and i % config['print_frequency'] == 0:
             print('Episode: {}/{}. Reward: {}'.format(i, config['num_episodes'], episode_reward))
 
     env.close()
