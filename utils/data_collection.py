@@ -8,13 +8,17 @@ import h5py
 import cv2 as cv
 
 class DataCollector():
-    def __init__(self, out):
+    def __init__(self, out, episodes_per_write=1):
         self.outfile_path = out
         self.episode_count = 0
 
         self.state_buff = []
         self.reward_buff = []
         self.action_buff = []
+
+        # Episodes are stored in write buffer until they need to be printed out 
+        self.write_buffer = {}
+        self.episodes_per_write = episodes_per_write
 
         # clear/restart file
         with h5py.File(self.outfile_path, 'w') as file:
@@ -34,17 +38,39 @@ class DataCollector():
         self.action_buff.append(action)
         
         if done:
-            # Write data into the outfile
-            # This will be in pairs of (state, action, reward, next_stete, done)
             num_iterations = len(self.action_buff)
-            with h5py.File(self.outfile_path, 'a') as file:
-                grp = file.create_group(f'episode_{self.episode_count}')
-                grp.create_dataset(f'states', data=np.array(self.state_buff), compression='gzip')
-                grp.create_dataset(f'actions', data=np.array(self.action_buff))
-                grp.create_dataset(f'rewards', data=np.array(self.reward_buff))
+            # Check if we should write to file, or just write to buffer
+            eps_in_buffer = self.write_buffer.keys()
+            if len(eps_in_buffer) == (self.episodes_per_write-1):
+                # Write data into the outfile (both this episode and buffer episodes)
+                # This will be in pairs of (state, action, reward, next_stete, done)
+                with h5py.File(self.outfile_path, 'a') as file:
+                    grp = file.create_group(f'episode_{self.episode_count}')
+                    grp.create_dataset(f'states', data=np.array(self.state_buff), compression='gzip')
+                    grp.create_dataset(f'actions', data=np.array(self.action_buff))
+                    grp.create_dataset(f'rewards', data=np.array(self.reward_buff))
+                    done_arr = np.full((num_iterations), False)
+                    done_arr[-1] = True
+                    grp.create_dataset(f'done', data=done_arr)
+                
+                    # Write buffer data to outfile
+                    keys = self.write_buffer.keys()
+                    for k in keys:
+                        temp_data = self.write_buffer[k]
+                        grp = file.create_group(f'episode_{k}')
+                        grp.create_dataset(f'states', data=np.array(temp_data[0]), compression='gzip')
+                        grp.create_dataset(f'actions', data=np.array(temp_data[1]))
+                        grp.create_dataset(f'rewards', data=np.array(temp_data[2]))
+                        grp.create_dataset(f'done', data=temp_data[3])
+
+                # Clear buffer
+                self.write_buffer = {}
+
+            else:
+                # Write data to write buffer
                 done_arr = np.full((num_iterations), False)
                 done_arr[-1] = True
-                grp.create_dataset(f'done', data=done_arr)
+                self.write_buffer[self.episode_count] = (self.state_buff, self.action_buff, self.reward_buff, done_arr)
                 
             # Reset buffers
             self.state_buff = []
@@ -52,6 +78,21 @@ class DataCollector():
             self.action_buff = []
 
             self.episode_count += 1
+
+    def dump_write_buffer(self):
+        # write all data in write buffer to file
+        with h5py.File(self.outfile_path, 'a') as file:
+            keys = self.write_buffer.keys()
+            for k in keys:
+                temp_data = self.write_buffer[k]
+                grp = file.create_group(f'episode_{k}')
+                grp.create_dataset(f'states', data=np.array(temp_data[0]), compression='gzip')
+                grp.create_dataset(f'actions', data=np.array(temp_data[1]))
+                grp.create_dataset(f'rewards', data=np.array(temp_data[2]))
+                grp.create_dataset(f'done', data=temp_data[3])
+
+        # Clear buffer
+        self.write_buffer = {}
 
 def run_tests():
     # Used for testing data_collection functionality
