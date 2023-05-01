@@ -1,7 +1,8 @@
 import numpy
 import math
-import torch 
+import torch
 from torch import nn
+from .agent import Agent
 
 class MaskedAttentionHead(nn.Module):
     def __init__(self, num_heads, embedding_dim, *args, **kwargs) -> None:
@@ -43,11 +44,11 @@ class MaskedAttentionHead(nn.Module):
 
         # Attention
         # (bs x nh x sql x edim) * (bs x nh x edim x sql) -> (bs x nh x sql x sql)
-        compatibility = Q @ torch.transpose(K, -1, -2)   
+        compatibility = Q @ torch.transpose(K, -1, -2)
         scaled_compatibility = torch.divide(compatibility, math.sqrt(self.embedding_dim))
         mask = torch.ones_like(scaled_compatibility) * float('-inf')
         mask = torch.triu(mask, 1)
-        masked_compatibility = scaled_compatibility + mask 
+        masked_compatibility = scaled_compatibility + mask
         attention_scores = self.softmax(masked_compatibility)
 
         # Output
@@ -62,21 +63,10 @@ class DecisionTransformer(nn.Module):
     def __init__(self) -> None:
         super().__init__()
 
+class DTAgent(Agent):
+    def __init__(self, env):
+        super(DTAgent, self).__init__(env)
+        self.model = DecisionTransformer()
 
-def main():
-    # Test masked attention module
-    bs = 1
-    nh = 3
-    sql = 10 
-    edim = 7
-
-    x = torch.randn((bs, sql, edim))
-
-    net = MaskedAttentionHead(nh, edim)
-    o = net(x)
-    print(f'Out: {o}')
-    print(f'Out shape: {o.shape}')
-
-
-if __name__ == '__main__':
-    main()
+    def act(self, state):
+        return self.env.action_space.sample()
