@@ -53,7 +53,7 @@ class ReplayBuffer:
         """ 
         Returns a random sample of batch_size from the replay memory.
         """
-        sample_indices = np.random.choice(self.capacity, batch_size)
+        sample_indices = np.random.choice(self.length, batch_size)
 
         state_sample = self.state_memory[sample_indices]
         action_sample = self.action_memory[sample_indices]

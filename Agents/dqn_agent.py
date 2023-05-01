@@ -9,6 +9,8 @@ class DQNAgent(Agent):
                  learning_rate=constants.DQN_LEARNING_RATE, gamma=constants.GAMMA):
         super(DQNAgent, self).__init__(env)
 
+        self.iterations = 0
+
         # Initialize networks
 
         self.target_net = DQN()
@@ -21,9 +23,10 @@ class DQNAgent(Agent):
         self.learning_rate = learning_rate
         self.gamma = gamma
 
-        # Initialize optimizer
+        # Initialize optimization objects
 
         self.optimizer = torch.optim.Adam(self.policy_net.parameters(), lr=self.learning_rate)
+        self.loss = nn.MSELoss()
 
         # Initialize replay buffer and epsilon scheduler
 
@@ -39,22 +42,45 @@ class DQNAgent(Agent):
 
 
     def act(self, state):
-        if np.random.rand() < 0:
-            return self.env.action_space.sample()
+        # Reshape state to (1, 3, 210, 160) PyTorch tensor
+        torch_state = torch.tensor(state, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0)
+
+        if np.random.rand() < self.scheduler.get_epsilon():
+            action = self.env.action_space.sample()
+            return action
         else:
             with torch.no_grad():
-                print("Using policy network")
-                state = torch.unsqueeze(torch.tensor(state, dtype=torch.float32), 0)
-                print(state.shape)
-                raise NotImplementedError
-                return self.policy_net(torch.tensor(state, dtype=torch.float32)).argmax().item()
+                return self.policy_net(torch_state).argmax().item()
     
-    def train(self, end_of_episode=False):
+    def train(self):
         """
         Perform one iteration of training.
         This function is called once per frame when training.
         """
+
+        if self.iterations % constants.DQN_UPDATE_FREQUENCY == 0:   # Train 
+            state_sample, action_sample, next_state_sample, reward_sample, done_sample = self.replay_buffer.sample_tensor_batch(constants.BATCH_SIZE)
+            
+            target_q_values = self.target_net(next_state_sample).max(1)[0].detach().view(-1, 1)
+            targets = reward_sample + self.gamma * target_q_values * (1 - done_sample.long())
+
+            preds = self.policy_net(state_sample).gather(1, action_sample)
+
+            loss = self.loss(preds, targets)
+
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
+
+        if self.iterations % constants.DQN_TARGET_UPDATE_FREQUENCY == 0:   # Update target network
+            self.target_net.load_state_dict(self.policy_net.state_dict())
+
         self.scheduler.step()
+        self.iterations += 1
+            
+        
+        
+
     
 class DQN(nn.Module):
     def __init__(self, *args, **kwargs) -> None:
@@ -75,13 +101,17 @@ class DQN(nn.Module):
             nn.Conv2d(128, 256, kernel_size=3, stride=1),
             nn.BatchNorm2d(256),
             nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
             nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(256),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(9216, 1024),
+            nn.Linear(22528, 1024),
             nn.ReLU(),
-            nn.Linear(1024, 4)
+            nn.Linear(1024, 9)
         )
 
     def forward(self, x):
@@ -102,7 +132,7 @@ class DQN_vanilla(nn.Module):
             nn.Flatten(),
             nn.Linear(3136, 512),
             nn.ReLU(),
-            nn.Linear(512, 4)
+            nn.Linear(512, 9)
         )
 
     def forward(self, x):

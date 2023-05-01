@@ -91,7 +91,7 @@ def run():
 
     # Initialize objects
     global replay_buffer
-    if config['experience_replay'] and config['train']:
+    if config['experience_replay']:
         replay_buffer = experience_replay.ReplayBuffer(config['replay_memory_size'], config['dimensions'])
 
     global scheduler
@@ -109,7 +109,7 @@ def run():
     
 
 
-    # Training loop
+    # Game loop
 
     for i in range(config['num_episodes']):
         episode_reward = 0
@@ -129,7 +129,7 @@ def run():
             state = next_state
 
             if config['train']:
-                agent.train(end_of_episode=done)
+                agent.train()
 
         state, _ = env.reset()
         if config['verbose'] and i % config['print_frequency'] == 0:
