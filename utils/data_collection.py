@@ -170,7 +170,7 @@ def run_tests():
             read_rewards = episode["rewards"][()]
             read_done = episode["done"][()]
             read_reward_to_go = episode["reward_to_go"][()]
-            read_timestep = epsisode["timestep"][()]
+            read_timestep = episode["timestep"][()]
 
             for i in range(0, len(read_actions)):
             
