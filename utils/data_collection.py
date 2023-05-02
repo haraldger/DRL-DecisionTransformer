@@ -60,6 +60,7 @@ class DataCollector():
                     grp.create_dataset(f'actions', data=np.array(self.action_buff))
                     grp.create_dataset(f'rewards', data=np.array(self.reward_buff))
                     grp.create_dataset(f'reward_to_go', data=np.array(reward_to_go))
+                    grp.create_dataset(f'timestep', data=np.arange(len(self.action_buff)))
                     done_arr = np.full((num_iterations), False)
                     done_arr[-1] = True
                     grp.create_dataset(f'done', data=done_arr)
@@ -77,6 +78,7 @@ class DataCollector():
                         grp.create_dataset(f'actions', data=np.array(temp_data["action"]))
                         grp.create_dataset(f'rewards', data=np.array(temp_data["reward"]))
                         grp.create_dataset(f'reward_to_go', data=np.array(reward_to_go))
+                        grp.create_dataset(f'timestep', data=np.arange(len(temp_data["action"])))
                         grp.create_dataset(f'done', data=temp_data["done"])
 
                 # Clear buffer
@@ -116,6 +118,7 @@ class DataCollector():
                 grp.create_dataset(f'actions', data=np.array(temp_data["action"]))
                 grp.create_dataset(f'rewards', data=np.array(temp_data["reward"]))
                 grp.create_dataset(f'reward_to_go', data=np.array(reward_to_go))
+                grp.create_dataset(f'timestep', data=np.arange(len(temp_data["action"])))
                 grp.create_dataset(f'done', data=temp_data["done"])
 
         # Clear buffer
@@ -167,6 +170,7 @@ def run_tests():
             read_rewards = episode["rewards"][()]
             read_done = episode["done"][()]
             read_reward_to_go = episode["reward_to_go"][()]
+            read_timestep = epsisode["timestep"][()]
 
             for i in range(0, len(read_actions)):
             
@@ -211,6 +215,12 @@ def run_tests():
                         print("Should be: ", np.sum(rewards[i+1:]))
                         print("Remaining rewards: ", rewards[i+1:])
                         sys.exit()
+
+                if read_timestep[i] != i:
+                    print("Error: Timestep")
+                    print("iteration: ", i)
+                    print("Read value: ", read_timestep[i])
+                    sys.exit()
 
     print("Passed: All rows matched!")
 

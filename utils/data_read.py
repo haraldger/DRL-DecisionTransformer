@@ -20,11 +20,11 @@ class TrajectoryData:
         # Going to store sequence of (state, action, reward, next_state, done)
         self.data_pairs = []
 
-    def add_iteration(self, action, reward, next_state, reward_to_go, done):
+    def add_iteration(self, action, reward, next_state, reward_to_go, timestep, done):
         if len(self.data_pairs) == 0:
-            self.data_pairs.append((self.inital_state, action, reward, next_state, reward_to_go, done))
+            self.data_pairs.append((self.inital_state, action, reward, next_state, reward_to_go, timestep, done))
         else:
-            self.data_pairs.append((self.data_pairs[-1][3], action, reward, next_state, reward_to_go, done))
+            self.data_pairs.append((self.data_pairs[-1][3], action, reward, next_state, reward_to_go, timestep, done))
 
 
 class DataReader(Dataset):
@@ -49,6 +49,7 @@ class DataReader(Dataset):
                 read_rewards = episode["rewards"][()]
                 read_done = episode["done"][()]
                 read_reward_to_go = episode["reward_to_go"][()]
+                read_timestep = episode["timestep"][()]
 
                 if len(read_actions) == 0:
                     continue
@@ -56,7 +57,7 @@ class DataReader(Dataset):
                 # Process data into trajectory pairs
                 traj_data = TrajectoryData(read_states[0])
                 for i in range(0, len(read_actions)):
-                    traj_data.add_iteration(read_actions[i], read_rewards[i], read_states[i+1], read_reward_to_go[i], read_done[i])
+                    traj_data.add_iteration(read_actions[i], read_rewards[i], read_states[i+1], read_reward_to_go[i], read_timestep[i], read_done[i])
                 
                 # Add epsiode trajectory pairs to all pairs
                 self.all_traj_data += traj_data.data_pairs        
@@ -65,7 +66,7 @@ class DataReader(Dataset):
         return len(self.all_traj_data)
     
     def __getitem__(self, idx):
-        state, action, reward, next_state, reward_to_go, done = self.all_traj_data[idx] 
+        state, action, reward, next_state, reward_to_go, timestep, done = self.all_traj_data[idx] 
         
         # Nomralize image data to between 0 and 1, also have shape (channels, height, width)
         state = torch.from_numpy(state).permute(2, 0, 1).float() / 255.0
@@ -73,9 +74,10 @@ class DataReader(Dataset):
         action = torch.tensor(action).short()
         reward = torch.tensor(reward).float()
         reward_to_go = torch.tensor(reward_to_go).float()
+        timestep = torch.tensor(timestep).short()
         done = torch.tensor(done).bool()
 
-        return state, action, reward, next_state, reward_to_go, done
+        return state, action, reward, next_state, reward_to_go, timestep, done
 
 
 def run_tests():
@@ -88,15 +90,16 @@ def run_tests():
 
     print("First action: ", reader.all_traj_data[0][1])
     print("First reward: ", reader.all_traj_data[0][2])
-    print("First done value: ", reader.all_traj_data[0][5])
+    print("First done value: ", reader.all_traj_data[0][6])
     print("First reward to go: ", reader.all_traj_data[0][4])
+    print("First timestep: ", reader.all_traj_data[0][5])
     print("Shape of state: ", reader.all_traj_data[0][0].shape)
     print("Shape of next state: ", reader.all_traj_data[0][3].shape)
 
     # Test torch support
     dataloader = DataLoader(reader, batch_size=2, shuffle=False)
     
-    for batch_idx, (states, actions, rewards, next_states, rewards_to_go, dones) in enumerate(dataloader):
+    for batch_idx, (states, actions, rewards, next_states, rewards_to_go, timesteps, dones) in enumerate(dataloader):
         print("all state in batch shape: ", states.shape)
         print("batch first state shape: ", states[0].shape)
         print("batch first next state shape: ", next_states[0].shape)
@@ -104,6 +107,7 @@ def run_tests():
         print("actions: ", actions)
         print("rewards: ", rewards)
         print("rewards to go: ", rewards_to_go)
+        print("timesteps: ", timesteps)
         print("dones: ", dones)
 
         # Since only pos rewards, reward_to_go should be non-increasing 
@@ -114,11 +118,15 @@ def run_tests():
         if rewards_to_go[0] - rewards[1] != rewards_to_go[1]:
             print("Error: Didn't decrement reward to go properly")
             sys.exit() 
+
+        if timesteps[0] != 0 or timesteps[1] != 1:
+            print("Error: in timesteps")
+            sys.exit()
         # Only test one iteration
         break
 
     # Get the last iteration
-    last_state_sample, last_action_sample, last_reward_sample, last_next_state_sample, last_rewards_to_go, last_done_sample = reader[-1]
+    last_state_sample, last_action_sample, last_reward_sample, last_next_state_sample, last_rewards_to_go, last_timestep, last_done_sample = reader[-1]
     # Make sure the reward to go is 0
     if last_rewards_to_go != 0:
         print("Error with last reward to go: ", last_rewards_to_go)
