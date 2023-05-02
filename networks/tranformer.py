@@ -179,7 +179,6 @@ class DecisionTransformer(nn.Module):
             self, 
             states, 
             actions, 
-            rewards, 
             returns_to_go, 
             timesteps
     ):
