@@ -182,6 +182,8 @@ class DecisionTransformer(nn.Module):
             returns_to_go, 
             timesteps
     ):
+        # NOTE: actions should be in one-hot rep based on act_dim
+
         batch_size, seq_length = states.shape[0:2]
 
         # Embed each modality with a different head
