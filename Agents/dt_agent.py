@@ -67,7 +67,7 @@ class AttentionHead(nn.Module):
 class GPTBlock(nn.Module):
     def __init__(self, num_heads, embedding_dim, ff_dim, dropout, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.attention_block = AttentionHead(num_heads, embedding_dim, args, kwargs)
+        self.attention_block = AttentionHead(num_heads, embedding_dim, masked=True, *args, **kwargs)
         self.ln1 = nn.LayerNorm(embedding_dim)
         
         # Feed forward network
@@ -104,8 +104,79 @@ class GPTBlock(nn.Module):
         
 
 class DecisionTransformer(nn.Module):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, num_blocks, num_heads, embedding_dim, ff_dim, dropout, max_ep_len, state_dim, act_dim=9, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.embedding_dim = embedding_dim
+        self.state_dim = state_dim
+        self.act_dim = act_dim
+
+        # Embeddings and Encodings
+        self.embed_timestep = nn.Embedding(max_ep_len, embedding_dim)
+        self.embed_return = nn.Linear(1, embedding_dim)
+        self.embed_state = nn.Linear(state_dim, embedding_dim)
+        self.embed_action = nn.Linear(act_dim, embedding_dim)
+
+        self.embed_ln = nn.LayerNorm(embedding_dim)
+
+        # GPT blocks
+        self.blocks = nn.ModuleList([
+            GPTBlock(num_heads, embedding_dim, ff_dim, dropout, *args, **kwargs)
+            for _ in range(num_blocks)
+        ])
+
+        # output prediction layers
+        # self.predict_state = nn.Linear(embedding_dim, self.state_dim)
+        # self.predict_action = nn.Sequential(
+        #     nn.Linear(embedding_dim, self.act_dim) + nn.Tanh() 
+        # )
+        # self.predict_return = nn.Linear(embedding_dim, 1)
+
+        # NOTE: atm just using action prediction, since our attention blocks only output a single value
+        self.predict_action = nn.Sequential(
+            nn.Linear(embedding_dim, self.act_dim),
+            nn.Softmax()
+        )
+
+
+    def forward(self, states, actions, rewards, returns_to_go, timesteps):
+        batch_size, seq_length = states.shape[0:2]
+
+        # Embed each modality with a different head
+        state_embeddings = self.embed_state(states)
+        action_embeddings = self.embed_action(actions)
+        returns_embeddings = self.embed_return(returns_to_go)
+        time_embeddings = self.embed_timestep(timesteps)
+
+        # time embeddings 
+        state_embeddings = state_embeddings + time_embeddings
+        action_embeddings = action_embeddings + time_embeddings
+        returns_embeddings = returns_embeddings + time_embeddings
+
+        # Stack inputs
+        stacked_inputs = torch.stack(
+            (returns_embeddings, state_embeddings, action_embeddings), dim=1
+        ).permute(0, 2, 1, 3).reshape(batch_size, 3*seq_length, self.embedding_dim)
+        stacked_inputs = self.embed_ln(stacked_inputs)
+
+        # Pass through GPT Layers
+        transformer_output = self.blocks.forward(stacked_inputs)
+
+        # # Reshape so that second dim corresponds to the original:
+        # # returns (0), states (1), or actions (2)
+        # x = transformer_output.reshape(batch_size, seq_length, 3, self.embedding_dim).permute(0, 2, 1, 3)
+
+        # # get predictions
+        # return_preds = self.predict_return(x[:,2])  # predict next return given state and action
+        # state_preds = self.predict_state(x[:,2])    # predict next state given state and action
+        # action_preds = self.predict_action(x[:,1])  # predict next action given state
+
+        # return state_preds, action_preds, return_preds
+
+        action_predict = self.predcit_action(transformer_output)
+
+        return action_predict
+
 
 class DTAgent(Agent):
     def __init__(self, env):
