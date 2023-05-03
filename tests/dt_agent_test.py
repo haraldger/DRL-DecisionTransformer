@@ -8,11 +8,14 @@ def test_forward_pass():
 
     dt_model = DTAgent(env)
 
+    batch_size = 1
+    seq_length = 2
+
     # expects state to be float normalized form
-    state_seq = torch.rand(2, 3, 210, 160).float()
-    action_seq = torch.randint(high=9, size=(2,)).unsqueeze(-1)
-    ret_to_go_seq = torch.tensor([10000,9998]).unsqueeze(-1).float()
-    timestep_seq = torch.tensor([0,1]).unsqueeze(-1)
+    state_seq = torch.rand(batch_size, seq_length, 3, 210, 160).float()
+    action_seq = torch.randint(high=9, size=(batch_size, seq_length, 1))
+    ret_to_go_seq = torch.tensor([10000,9998]).float().reshape(batch_size, seq_length, 1)
+    timestep_seq = torch.tensor([0,1]).reshape(batch_size, seq_length, 1)
 
     # print(action_seq.shape)
     # print(ret_to_go_seq.shape)

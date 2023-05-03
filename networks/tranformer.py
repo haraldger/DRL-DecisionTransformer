@@ -187,21 +187,35 @@ class DecisionTransformer(nn.Module):
         batch_size, seq_length = states.shape[0:2]
 
         # Embed each modality with a different head
-        time_embeddings = self.embed_timestep(timesteps)
+        time_embeddings = self.embed_timestep(timesteps).squeeze()
         action_embeddings = self.embed_action(actions).squeeze()
         returns_embeddings = self.embed_return(returns_to_go)
         state_embeddings = self.embed_state(states).squeeze()
+
+        print(state_embeddings.shape)
+        print(action_embeddings.shape)
+        print(returns_embeddings.shape)
+        print(time_embeddings.shape)
+        print("\n---\n")
 
         # time embeddings 
         state_embeddings = state_embeddings + time_embeddings
         action_embeddings = action_embeddings + time_embeddings
         returns_embeddings = returns_embeddings + time_embeddings
 
+        print(state_embeddings.shape)
+        print(action_embeddings.shape)
+        print(returns_embeddings.shape)
+        print("\n---\n")
+
         # Stack inputs
         stacked_inputs = torch.stack(
             (returns_embeddings, state_embeddings, action_embeddings), dim=1
-        ).permute(0, 2, 1, 3).reshape(batch_size, 3*seq_length, self.embedding_dim)
+        ).permute(0, 2, 1, 3).reshape(batch_size, 3*seq_length self.embedding_dim)
+
         stacked_inputs = self.embed_ln(stacked_inputs)
+
+        print(stacked_inputs.shape)
 
         # Pass through GPT Layers
         transformer_output = self.blocks.forward(stacked_inputs)

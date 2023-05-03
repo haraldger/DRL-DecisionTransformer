@@ -56,6 +56,7 @@ class DTAgent(Agent):
         for batch_idx, (states, actions, rewards, next_states, returns_to_go, timesteps, dones) in enumerate(train_loader):
             optimizer.zero_grad()
             a_preds = self.model.forward(states, actions, returns_to_go, timesteps)
+            one_hot_actions = F.one_hot(actions, num_classes=9)
             loss = self.cross_entropy_loss(a_preds, one_hot_actions)
             loss.backward()
             optimizer.step()
@@ -68,13 +69,13 @@ class DTAgent(Agent):
         """ 
         Parameters:
             - state_seq - torch tensor of images (states)
-                - Expected input shape: (batch_size, channels, y, x)
+                - Expected input shape: (batch_size, seq_length, channels, y, x)
             - action_seq - torch tensor of actions. (shorts)
-                - Expected input shape: (batch_size, 1)
+                - Expected input shape: (batch_size, seq_length, 1)
             - return_to_go_seq - torch tensor of returns to go (floats)
-                - Expected input shape: (batch_size, 1)
+                - Expected input shape: (batch_size, seq_length, 1)
             - timestep_seq - what timestep you were on (shorts)
-                - Expeected input shape: (batch_size, 1)
+                - Expeected input shape: (batch_size, seq_legnth, 1)
         Precondition:
             - If this is the first step in evaluation, assumed that a start token has already been made
         """        
@@ -98,6 +99,7 @@ class DTAgent(Agent):
         """     
 
         state, _ = self.env.reset()
+        y, x, z = state.shape
         inactive_frams = 65
 
         for _ in range(inactive_frams):
@@ -112,11 +114,13 @@ class DTAgent(Agent):
         action_seq = [0]
         timestep_seq = [0]
 
+        seq_length = 1
+
         while not done:
-            return_to_go_seq_torch = torch.tensor(return_to_go_seq).float().unsqueeze(-1)
-            state_seq_torch = torch.tensor(state_seq).float()
-            action_seq_torch = torch.tensor(action_seq).short().unsqueeze(-1)
-            timestep_seq_torch = torch.tensor(timestep_seq).short().unsqueeze(-1)
+            return_to_go_seq_torch = torch.tensor(return_to_go_seq).float().reshape(1, seq_length, 1)
+            state_seq_torch = torch.tensor(state_seq).reshape(1, seq_length, y, x, z)
+            action_seq_torch = torch.tensor(action_seq).short().reshape(1, seq_length, 1)
+            timestep_seq_torch = torch.tensor(timestep_seq).short().reshape(1, seq_length, 1)
 
             next_action_pred = self.predict_next_action(state_seq_torch, action_seq_torch, return_to_go_seq_torch, timestep_seq_torch)
             next_action = torch.argmax(next_action_pred)
@@ -136,6 +140,8 @@ class DTAgent(Agent):
             state_seq[-traj_mem_size:]
             action_seq[-traj_mem_size:]
             timestep_seq[-traj_mem_size:]
+
+            seq_length += 1
         
-        return reward, timestep_seq[-1]
+        return reward, seq_length-1
             
