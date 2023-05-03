@@ -46,7 +46,7 @@ class DQNAgent(Agent):
         # Reshape state to (1, 3, 210, 160) PyTorch tensor
         torch_state = torch.tensor(state, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0)
 
-        if np.random.rand() < self.scheduler.get_epsilon():
+        if np.random.rand() < self.scheduler.get_epsilon() or self.iterations < constants.INITIAL_EXPLORATION:
             action = self.env.action_space.sample()
             return action
         else:
@@ -58,6 +58,9 @@ class DQNAgent(Agent):
         Perform one iteration of training.
         This function is called once per frame when training.
         """
+        if self.iterations < constants.INITIAL_EXPLORATION:
+            self.iterations += 1
+            return
 
         if self.iterations % constants.DQN_UPDATE_FREQUENCY == 0:   # Train 
             state_sample, action_sample, next_state_sample, reward_sample, done_sample = self.replay_buffer.sample_tensor_batch(constants.BATCH_SIZE, self.device)
