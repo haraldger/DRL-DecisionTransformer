@@ -2,8 +2,8 @@ import numpy
 import math
 import torch
 from torch import nn 
-from ..Agents.agent import Agent
-from .resnet import resnet34, resnet50
+from Agents.agent import Agent
+from networks.resnet import resnet34, resnet50
 
 class AttentionHead(nn.Module):
     def __init__(
@@ -144,9 +144,9 @@ class DecisionTransformer(nn.Module):
 
         # Embeddings and Encodings
         self.embed_timestep = nn.Embedding(max_ep_len, embedding_dim)
+        self.embed_action = nn.Embedding(act_dim, embedding_dim)
         self.embed_return = nn.Linear(1, embedding_dim)
         self.embed_state = resnet50()
-        self.embed_action = nn.Linear(act_dim, embedding_dim)
 
         self.embed_ln = nn.LayerNorm(embedding_dim)
 
@@ -187,10 +187,10 @@ class DecisionTransformer(nn.Module):
         batch_size, seq_length = states.shape[0:2]
 
         # Embed each modality with a different head
-        state_embeddings = self.embed_state(states)
-        action_embeddings = self.embed_action(actions)
-        returns_embeddings = self.embed_return(returns_to_go)
         time_embeddings = self.embed_timestep(timesteps)
+        action_embeddings = self.embed_action(actions).squeeze()
+        returns_embeddings = self.embed_return(returns_to_go)
+        state_embeddings = self.embed_state(states).squeeze()
 
         # time embeddings 
         state_embeddings = state_embeddings + time_embeddings
