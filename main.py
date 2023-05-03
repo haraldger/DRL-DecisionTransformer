@@ -26,6 +26,7 @@ def main():
     parser.add_argument('-pf', '--print_frequency', type=int, help='Frequency in episodes to print progress')
     parser.add_argument('-lr', '--learning_rate', type=float, help='Learning rate')
     parser.add_argument('-g', '--gamma', type=float, help='Discount factor')
+    parser.add_argument('-l', '--load', type=str, default="None", help='Load model. Provide name of model file, without extension or folder')
     
     args = parser.parse_args()
 
@@ -40,6 +41,7 @@ def main():
     config['train'] = args.train
     config['num_episodes'] = args.num_episodes
     config['verbose'] = args.verbose
+    config['load'] = args.load
 
     if args.print_frequency:
         config['print_frequency'] = args.print_frequency
@@ -49,21 +51,17 @@ def main():
 
     if args.gamma:
         config['gamma'] = args.gamma
+        
 
     print("Print frequency is: ", config['print_frequency'])
 
-    if args.agent == 'random':
-        config['experience_replay'] = False
-        config['epsilon_scheduler'] = False
-    elif args.agent == 'dqn':
+    config['experience_replay'] = False
+    config['epsilon_scheduler'] = False
+    config['save'] = False
+    if args.agent == 'dqn' and args.train:
         config['experience_replay'] = True
         config['epsilon_scheduler'] = True
-    elif args.agent == 'dt':
-        config['experience_replay'] = False
-        config['epsilon_scheduler'] = False
-    else:
-        print('Invalid agent')
-        sys.exit()
+        config['save'] = True
 
 
     # Initialize environment
@@ -103,9 +101,14 @@ def run():
         agent = random_agent.RandomAgent(env)
     elif config['agent'] == 'dqn':
         agent = dqn_agent.DQNAgent(env, replay_buffer, scheduler, config['dqn_learning_rate'], config['gamma'])
+        if config['load'] != 'None':
+            agent.load(config['load'])
+            save_name = config['load']      # If we are loading a model, we want to save it with the same name
     elif config['agent'] == 'dt':
         agent = dt_agent.DTAgent(env)
 
+    if config['save'] and config['load'] == 'None':     # If we are training and not loading a model
+        save_name = time.strftime("%Y%m%d-%H%M%S")
     
 
 
@@ -113,6 +116,7 @@ def run():
 
     for i in range(config['num_episodes']):
         episode_reward = 0
+        
 
         # Skip inactive frames
         for _ in range(inactive_frames):
@@ -134,6 +138,9 @@ def run():
         state, _ = env.reset()
         if config['verbose'] and i % config['print_frequency'] == 0:
             print('Episode: {}/{}. Reward: {}'.format(i, config['num_episodes'], episode_reward))
+
+        if i % config['model_save_frequency'] == 0:
+            agent.save(save_name)
 
     env.close()
 

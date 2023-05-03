@@ -81,6 +81,13 @@ class DQNAgent(Agent):
 
         self.scheduler.step()
         self.iterations += 1
+
+    def save(self, name):
+        torch.save(self.policy_net.state_dict(), "results/" + name + ".pt")
+
+    def load(self, name):
+        self.policy_net.load_state_dict(torch.load("results/" + name + ".pt", map_location=self.device))
+        self.target_net.load_state_dict(self.policy_net.state_dict())
             
         
         
