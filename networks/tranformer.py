@@ -211,7 +211,7 @@ class DecisionTransformer(nn.Module):
         # Stack inputs
         stacked_inputs = torch.stack(
             (returns_embeddings, state_embeddings, action_embeddings), dim=1
-        ).permute(0, 2, 1, 3).reshape(batch_size, 3*seq_length self.embedding_dim)
+        ).permute(0, 2, 1, 3).reshape(batch_size, 3*seq_length, self.embedding_dim)
 
         stacked_inputs = self.embed_ln(stacked_inputs)
 
