@@ -208,8 +208,6 @@ class DecisionTransformer(nn.Module):
 
         stacked_data = self.embed_ln(stacked_inputs)
 
-        print(stacked_inputs.shape)
-
         # Pass through GPT Layers
         for block in self.gpt_blocks:
             stacked_data = block(stacked_data)
@@ -222,7 +220,5 @@ class DecisionTransformer(nn.Module):
         # return_preds = self.predict_return(x[:,0])  # predict next return given state and action
         # state_preds = self.predict_state(x[:,1])    # predict next state given state and action
         action_preds = self.predict_action(stacked_transformer_output[:,2])  # predict next action given state
-
-        print(action_preds.shape)
 
         return action_preds

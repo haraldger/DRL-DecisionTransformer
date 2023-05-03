@@ -10,6 +10,7 @@ from networks.resnet import resnet34, resnet50
 from networks.tranformer import DecisionTransformer
 import gym
 from utils.data_load_transform import image_transformation
+from collections import deque
 
 class DTAgent(Agent):
     def __init__(
@@ -56,7 +57,7 @@ class DTAgent(Agent):
 
         for batch_idx, (states, actions, rewards, returns_to_go, timesteps, dones) in enumerate(train_loader):
             optimizer.zero_grad()
-            a_preds = self.model.forward(states, actions, returns_to_go, timesteps)
+            a_preds = self.model.forward(states, actions.int(), returns_to_go, timesteps.int())
             one_hot_actions = F.one_hot(actions, num_classes=9)
             loss = self.cross_entropy_loss(a_preds, one_hot_actions)
             loss.backward()
@@ -111,30 +112,43 @@ class DTAgent(Agent):
             data_collection_obj.set_init_state(state)
 
         # Transform the state
-        save_state = image_transformation(state)
+        state = torch.from_numpy(state).permute(2,0,1).unsqueeze(0).float()
+        state = image_transformation(state)
 
         # Create start token (using nop action)
-        return_to_go_seq = [target_reward]
-        state_seq = [save_state]
-        action_seq = [0]
-        timestep_seq = [0]
+        # Note: use of deque will ensure that we keep the most recent elements (only traj_mem_size)
+        return_to_go_seq = deque(maxlen=traj_mem_size)
+        return_to_go_seq.append(target_reward)
+        state_seq = deque(maxlen=traj_mem_size)
+        state_seq.append(state)
+        action_seq = deque(maxlen=traj_mem_size)
+        action_seq.append(0)
+        timestep_seq = deque(maxlen=traj_mem_size)
+        timestep_seq.append(0)
 
         seq_length = 1
 
         while not done:
             return_to_go_seq_torch = torch.tensor(return_to_go_seq).float().reshape(1, seq_length, 1)
-            state_seq_torch = torch.tensor(state_seq).reshape(1, seq_length, y, x, z)
-            action_seq_torch = torch.tensor(action_seq).short().reshape(1, seq_length, 1)
-            timestep_seq_torch = torch.tensor(timestep_seq).short().reshape(1, seq_length, 1)
+            state_seq_torch = torch.stack(list(state_seq)).reshape(1, seq_length, 1, y, x)
+            action_seq_torch = torch.tensor(action_seq).int().reshape(1, seq_length, 1)
+            timestep_seq_torch = torch.tensor(timestep_seq).int().reshape(1, seq_length, 1)
+
+            print(return_to_go_seq_torch.shape)
+            print(state_seq_torch.shape)
+            print(action_seq_torch.shape)
+            print(timestep_seq_torch.shape)
 
             next_action_pred = self.predict_next_action(state_seq_torch, action_seq_torch, return_to_go_seq_torch, timestep_seq_torch)
             next_action = torch.argmax(next_action_pred)
+            
             next_state, reward, done, info, _ = self.env.step(next_action)
 
             if data_collection_obj is not None:
                 data_collection_obj.store_next_step(next_action, reward, next_state, done)
 
             # Transform next state
+            next_state = torch.from_numpy(next_state).permute(2,0,1).unsqueeze(0).float()
             next_state = image_transformation(next_state)
 
             # update sequences
@@ -144,10 +158,7 @@ class DTAgent(Agent):
             timestep_seq.append(timestep_seq[-1] + 1)
             
             # Keep only the last mem-length iterations
-            return_to_go_seq[-traj_mem_size:]
-            state_seq[-traj_mem_size:]
-            action_seq[-traj_mem_size:]
-            timestep_seq[-traj_mem_size:]
+            # Implied by deque object
 
             seq_length += 1
         

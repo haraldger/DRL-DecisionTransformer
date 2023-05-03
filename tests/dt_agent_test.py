@@ -25,7 +25,19 @@ def test_forward_pass():
     print("Next action prediction test: ", next_action)
 
 
+def test_traj():
+    env = gym.make('ALE/MsPacman-v5')
+    dt_model = DTAgent(env)
+
+    reward, seq_length = dt_model.run_evaluation_traj()
+    
+    print("reward: ", reward)
+    print("seq_length: ", seq_length)
+
 def run():
     print("Testing DT Agent forward pass.\n")
     test_forward_pass()
+    print("\n")
+    print("Testing a DT trajectory")
+    test_traj()
     print("\n")
