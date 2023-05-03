@@ -1,5 +1,5 @@
 PRINT_FREQUENCY = 1000                  # Frequency in episodes to print progress
-REPLAY_MEMORY_SIZE = 100000             # Size of experience replay memory
+REPLAY_MEMORY_SIZE = 50000             # Size of experience replay memory
 DIMENSIONS = (210, 160, 3)              # Dimensions of state space as returned by gym environment
 INITIAL_EPSILON = 1.0                   # Initial value of epsilon in epsilon-greedy exploration
 FINAL_EPSILON = 0.01                    # Final value of epsilon in epsilon-greedy exploration
