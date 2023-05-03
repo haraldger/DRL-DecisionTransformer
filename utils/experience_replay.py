@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import random
 import torch
+import torchvision.transforms.functional as TF
 from utils import constants
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -22,10 +23,10 @@ class ReplayBuffer:
         self.state_memory_dims = (self.capacity, self.dims[0], self.dims[1], self.dims[2])
 
         # Initialize memories
-        self.state_memory = torch.empty(size=self.state_memory_dims).type(torch.float16)
-        self.action_memory = torch.empty(size=(self.capacity,1)).type(torch.long)
-        self.next_state_memory = torch.empty(size=self.state_memory_dims).type(torch.float16)
-        self.reward_memory = torch.empty(size=(self.capacity,1)).type(torch.float)
+        self.state_memory = torch.empty(size=self.state_memory_dims).type(torch.int8)
+        self.action_memory = torch.empty(size=(self.capacity,1)).type(torch.int8)
+        self.next_state_memory = torch.empty(size=self.state_memory_dims).type(torch.int8)
+        self.reward_memory = torch.empty(size=(self.capacity,1)).type(torch.int8)
         self.done_memory = torch.empty(size=(self.capacity,1)).type(torch.bool)
 
 
@@ -37,10 +38,10 @@ class ReplayBuffer:
 
         # Add to memory at current index
         idx = int(self.counter % self.capacity)
-        self.state_memory[idx] = torch.from_numpy(state).permute(2,0,1).type(torch.float)
-        self.action_memory[idx] = torch.Tensor([action]).type(torch.long)
-        self.next_state_memory[idx] = torch.from_numpy(next_state).permute(2,0,1).type(torch.float)
-        self.reward_memory[idx] = torch.Tensor([reward]).type(torch.float)
+        self.state_memory[idx] = torch.from_numpy(state).permute(2,0,1).type(torch.int8)
+        self.action_memory[idx] = torch.Tensor([action]).type(torch.int8)
+        self.next_state_memory[idx] = torch.from_numpy(next_state).permute(2,0,1).type(torch.int8)
+        self.reward_memory[idx] = torch.Tensor([reward]).type(torch.int8)
         self.done_memory[idx] = torch.Tensor([False]).type(torch.bool)
 
         # Bookkeeping
@@ -55,10 +56,10 @@ class ReplayBuffer:
         """
         sample_indices = np.random.choice(self.length, batch_size)
 
-        state_sample = self.state_memory[sample_indices]
-        action_sample = self.action_memory[sample_indices]
-        next_state_sample = self.next_state_memory[sample_indices]
-        reward_sample = self.reward_memory[sample_indices]
+        state_sample = self.state_memory[sample_indices].to(torch.float32)
+        action_sample = self.action_memory[sample_indices].to(torch.long)
+        next_state_sample = self.next_state_memory[sample_indices].to(torch.float32)
+        reward_sample = self.reward_memory[sample_indices].to(torch.long)
         done_sample = self.done_memory[sample_indices]
 
         return state_sample, action_sample, next_state_sample, reward_sample, done_sample
