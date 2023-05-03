@@ -228,18 +228,20 @@ def run_tests():
     TEST_OUTPUT_FILENAME = "test_traj_long.h5"
     traj_length = 1000
 
+    traj_num = 2
     collector = DataCollector(TEST_OUTPUT_FILENAME)
-    collector.set_init_state(state0)
-    
-    rand_states = []
-    rand_actions = np.random.randint(0, action_size, size=(traj_length))
-    rand_rewards = np.random.randint(0, 5, size=(traj_length))
-    for i in range(0,traj_length):
-        if i % 100 == 99:
-            print("Iteration: ", i)
-    
-        rand_states.append(np.random.randint(0, 256, size=state_shape, dtype=np.uint8))
-        collector.store_next_step(rand_actions[i], rand_rewards[i], rand_states[-1], (i==(traj_length-1)))
+    for i in range(0, traj_num):
+        collector.set_init_state(state0)
+        
+        rand_states = []
+        rand_actions = np.random.randint(0, action_size, size=(traj_length))
+        rand_rewards = np.random.randint(0, 5, size=(traj_length))
+        for i in range(0,traj_length):
+            if i % 100 == 99:
+                print("Iteration: ", i)
+        
+            rand_states.append(np.random.randint(0, 256, size=state_shape, dtype=np.uint8))
+            collector.store_next_step(rand_actions[i], rand_rewards[i], rand_states[-1], (i==(traj_length-1)))
 
     print("Complete")
 
