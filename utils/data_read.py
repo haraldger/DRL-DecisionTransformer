@@ -71,11 +71,11 @@ class DataReader(Dataset):
         # Nomralize image data to between 0 and 1, also have shape (channels, height, width)
         state = torch.from_numpy(state).permute(2, 0, 1).float() / 255.0
         next_state = torch.from_numpy(next_state).permute(2, 0, 1).float() / 255.0
-        action = torch.tensor(action).short()
-        reward = torch.tensor(reward).float()
-        reward_to_go = torch.tensor(reward_to_go).float()
-        timestep = torch.tensor(timestep).short()
-        done = torch.tensor(done).bool()
+        action = torch.tensor(action).short().unsqueeze(-1)
+        reward = torch.tensor(reward).float().unsqueeze(-1)
+        reward_to_go = torch.tensor(reward_to_go).float().unsqueeze(-1)
+        timestep = torch.tensor(timestep).short().unsqueeze(-1)
+        done = torch.tensor(done).bool().unsqueeze(-1)
 
         return state, action, reward, next_state, reward_to_go, timestep, done
 
@@ -109,6 +109,10 @@ def run_tests():
         print("rewards to go: ", rewards_to_go)
         print("timesteps: ", timesteps)
         print("dones: ", dones)
+
+        print("actions shape: ", actions.shape)
+        print("timesteps shape: ", timesteps.shape)
+        print("rewards_to_go shape: ", rewards_to_go.shape)
 
         # Since only pos rewards, reward_to_go should be non-increasing 
         if rewards_to_go[0] < rewards_to_go[1]:
