@@ -22,9 +22,9 @@ class ReplayBuffer:
         self.state_memory_dims = (self.capacity, self.dims[0], self.dims[1], self.dims[2])
 
         # Initialize memories
-        self.state_memory = torch.empty(size=self.state_memory_dims).type(torch.float)
+        self.state_memory = torch.empty(size=self.state_memory_dims).type(torch.float16)
         self.action_memory = torch.empty(size=(self.capacity,1)).type(torch.long)
-        self.next_state_memory = torch.empty(size=self.state_memory_dims).type(torch.float)
+        self.next_state_memory = torch.empty(size=self.state_memory_dims).type(torch.float16)
         self.reward_memory = torch.empty(size=(self.capacity,1)).type(torch.float)
         self.done_memory = torch.empty(size=(self.capacity,1)).type(torch.bool)
 
