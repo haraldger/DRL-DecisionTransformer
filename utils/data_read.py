@@ -10,6 +10,7 @@ import torch
 import cv2 as cv
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
+from utils.data_load_tranform import image_transformation
 
 state_shape = (210, 160, 3)
 
@@ -41,13 +42,16 @@ class TrajectoryData:
 class DataReader(Dataset):
     all_traj_data = []
 
-    def __init__(self, read_file, k_last_iters=1000):
+    def __init__(self, read_file, k_last_iters=1000, transform=True):
         super().__init__()
         self.all_traj_data = []
         
         # When fetching a traj, will get the last k iterations of it
         self.k_last_iters = k_last_iters
     
+        # If true, will grayscale and divide images by 255
+        self.transform = transform
+
         # Processes the entire file and stores it into the all_traj_data field
         with h5py.File(read_file) as file:
             for ep in file.keys():
@@ -84,7 +88,12 @@ class DataReader(Dataset):
 
         # Nomralize image data to between 0 and 1, also have shape (seq_length, channels, height, width)
         states = np.stack([t[0] for t in traj_pairs])
-        states = torch.from_numpy(states).permute(0, 3, 1, 2).float() / 255.0
+
+        if self.transform:
+            states = torch.from_numpy(states).permute(0, 3, 1, 2).float()
+            states = image_transformation(states)
+        else:
+            states = torch.from_numpy(states).permute(0, 3, 1, 2).int()
         
         # DT model doesn't even use next_states, so just don't reutrn them 
         # next_states = torch.tensor([t[3] for t in traj_pairs]).permute(0, 3, 1, 2).float() / 255.0
@@ -95,8 +104,6 @@ class DataReader(Dataset):
         timesteps = torch.tensor([t[5] for t in traj_pairs]).float().unsqueeze(-1)
         dones = torch.tensor([t[6] for t in traj_pairs]).float().unsqueeze(-1)        
         
-        print("shape before: ", actions.shape)
-
         return states, actions, rewards, rewards_to_go, timesteps, dones
         # return states, actions, rewards, next_states, rewards_to_go, timesteps, dones
 
