@@ -50,17 +50,17 @@ class ReplayBuffer:
         self.length = min(self.length+1, self.capacity)
     
 
-    def sample_tensor_batch(self, batch_size):
+    def sample_tensor_batch(self, batch_size, device=DEVICE):
         """ 
         Returns a random sample of batch_size from the replay memory.
         """
         sample_indices = np.random.choice(self.length, batch_size)
 
-        state_sample = self.state_memory[sample_indices].to(torch.float32)
-        action_sample = self.action_memory[sample_indices].to(torch.long)
-        next_state_sample = self.next_state_memory[sample_indices].to(torch.float32)
-        reward_sample = self.reward_memory[sample_indices].to(torch.long)
-        done_sample = self.done_memory[sample_indices]
+        state_sample = self.state_memory[sample_indices].to(device, dtype=torch.float32)
+        action_sample = self.action_memory[sample_indices].to(device, dtype=torch.long)
+        next_state_sample = self.next_state_memory[sample_indices].to(device, dtype=torch.float32)
+        reward_sample = self.reward_memory[sample_indices].to(device, dtype=torch.float32)
+        done_sample = self.done_memory[sample_indices].to(device, dtype=torch.bool)
 
         return state_sample, action_sample, next_state_sample, reward_sample, done_sample
 

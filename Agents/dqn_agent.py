@@ -9,12 +9,13 @@ class DQNAgent(Agent):
                  learning_rate=constants.DQN_LEARNING_RATE, gamma=constants.GAMMA):
         super(DQNAgent, self).__init__(env)
 
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.iterations = 0
 
         # Initialize networks
 
-        self.target_net = DQN()
-        self.policy_net = DQN()
+        self.target_net = DQN().to(self.device)
+        self.policy_net = DQN().to(self.device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net.eval()
 
@@ -59,7 +60,7 @@ class DQNAgent(Agent):
         """
 
         if self.iterations % constants.DQN_UPDATE_FREQUENCY == 0:   # Train 
-            state_sample, action_sample, next_state_sample, reward_sample, done_sample = self.replay_buffer.sample_tensor_batch(constants.BATCH_SIZE)
+            state_sample, action_sample, next_state_sample, reward_sample, done_sample = self.replay_buffer.sample_tensor_batch(constants.BATCH_SIZE, self.device)
             
             target_q_values = self.target_net(next_state_sample).max(1)[0].detach().view(-1, 1)
             targets = reward_sample + self.gamma * target_q_values * (1 - done_sample.long())
