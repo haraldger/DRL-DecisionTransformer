@@ -129,6 +129,7 @@ class DecisionTransformer(nn.Module):
             embedding_dim, 
             dropout, 
             max_ep_len, 
+            img_channels=1,
             act_dim=9, 
             *args, 
             **kwargs
@@ -146,7 +147,7 @@ class DecisionTransformer(nn.Module):
         self.embed_timestep = nn.Embedding(max_ep_len, embedding_dim)
         self.embed_action = nn.Embedding(act_dim, embedding_dim)
         self.embed_return = nn.Linear(1, embedding_dim)
-        self.embed_state = resnet50()
+        self.embed_state = resnet50(in_channels=img_channels)
 
         self.embed_ln = nn.LayerNorm(embedding_dim)
 
@@ -154,7 +155,7 @@ class DecisionTransformer(nn.Module):
         # (batch, sequencelength, embeddingdim)
 
         # GPT blocks
-        self.blocks = nn.ModuleList([
+        self.gpt_blocks = nn.ModuleList([
             GPTBlock(num_heads, embedding_dim, ff_dim, dropout, *args, **kwargs)
             for _ in range(num_blocks)
         ])
@@ -184,53 +185,44 @@ class DecisionTransformer(nn.Module):
     ):
         # NOTE: actions should be in one-hot rep based on act_dim
 
-        batch_size, seq_length = states.shape[0:2]
+        batch_size, seq_length, channels, y, x = states.shape
 
         # Embed each modality with a different head
-        time_embeddings = self.embed_timestep(timesteps).squeeze()
-        action_embeddings = self.embed_action(actions).squeeze()
-        returns_embeddings = self.embed_return(returns_to_go)
-        state_embeddings = self.embed_state(states).squeeze()
-
-        print(state_embeddings.shape)
-        print(action_embeddings.shape)
-        print(returns_embeddings.shape)
-        print(time_embeddings.shape)
-        print("\n---\n")
+        time_embeddings = self.embed_timestep(timesteps).reshape(batch_size, seq_length, self.embedding_dim)
+        action_embeddings = self.embed_action(actions).reshape(batch_size, seq_length, self.embedding_dim)
+        returns_embeddings = self.embed_return(returns_to_go).reshape(batch_size, seq_length, self.embedding_dim)
+        
+        # merge seq_length and batch_size dims for resenet
+        state_merged = states.reshape(-1, channels, y, x)
+        state_embeddings = self.embed_state(state_merged).reshape(batch_size, seq_length, self.embedding_dim)
 
         # time embeddings 
         state_embeddings = state_embeddings + time_embeddings
         action_embeddings = action_embeddings + time_embeddings
         returns_embeddings = returns_embeddings + time_embeddings
 
-        print(state_embeddings.shape)
-        print(action_embeddings.shape)
-        print(returns_embeddings.shape)
-        print("\n---\n")
-
         # Stack inputs
         stacked_inputs = torch.stack(
             (returns_embeddings, state_embeddings, action_embeddings), dim=1
         ).permute(0, 2, 1, 3).reshape(batch_size, 3*seq_length, self.embedding_dim)
 
-        stacked_inputs = self.embed_ln(stacked_inputs)
+        stacked_data = self.embed_ln(stacked_inputs)
 
         print(stacked_inputs.shape)
 
         # Pass through GPT Layers
-        transformer_output = self.blocks.forward(stacked_inputs)
+        for block in self.gpt_blocks:
+            stacked_data = block(stacked_data)
 
         # # Reshape so that second dim corresponds to the original:
         # # returns (0), states (1), or actions (2)
-        # x = transformer_output.reshape(batch_size, seq_length, 3, self.embedding_dim).permute(0, 2, 1, 3)
+        stacked_transformer_output = stacked_data.reshape(batch_size, seq_length, 3, self.embedding_dim).permute(0, 2, 1, 3)
 
         # # get predictions
-        # return_preds = self.predict_return(x[:,2])  # predict next return given state and action
-        # state_preds = self.predict_state(x[:,2])    # predict next state given state and action
-        # action_preds = self.predict_action(x[:,1])  # predict next action given state
+        # return_preds = self.predict_return(x[:,0])  # predict next return given state and action
+        # state_preds = self.predict_state(x[:,1])    # predict next state given state and action
+        action_preds = self.predict_action(stacked_transformer_output[:,2])  # predict next action given state
 
-        # return state_preds, action_preds, return_preds
+        print(action_preds.shape)
 
-        action_predict = self.predcit_action(transformer_output)
-
-        return action_predict
+        return action_preds

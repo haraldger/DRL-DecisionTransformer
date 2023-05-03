@@ -9,6 +9,7 @@ from Agents.agent import Agent
 from networks.resnet import resnet34, resnet50 
 from networks.tranformer import DecisionTransformer
 import gym
+from utils.data_load_transform import image_transformation
 
 class DTAgent(Agent):
     def __init__(
@@ -53,7 +54,7 @@ class DTAgent(Agent):
         optimizer = optim.Adam(self.parameters(), lr=learning_rate)
         train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-        for batch_idx, (states, actions, rewards, next_states, returns_to_go, timesteps, dones) in enumerate(train_loader):
+        for batch_idx, (states, actions, rewards, returns_to_go, timesteps, dones) in enumerate(train_loader):
             optimizer.zero_grad()
             a_preds = self.model.forward(states, actions, returns_to_go, timesteps)
             one_hot_actions = F.one_hot(actions, num_classes=9)
@@ -70,6 +71,7 @@ class DTAgent(Agent):
         Parameters:
             - state_seq - torch tensor of images (states)
                 - Expected input shape: (batch_size, seq_length, channels, y, x)
+                - Expects single channel image.
             - action_seq - torch tensor of actions. (shorts)
                 - Expected input shape: (batch_size, seq_length, 1)
             - return_to_go_seq - torch tensor of returns to go (floats)
@@ -108,9 +110,12 @@ class DTAgent(Agent):
         if data_collection_obj is not None:
             data_collection_obj.set_init_state(state)
 
+        # Transform the state
+        save_state = image_transformation(state)
+
         # Create start token (using nop action)
         return_to_go_seq = [target_reward]
-        state_seq = [state / 255.0]
+        state_seq = [save_state]
         action_seq = [0]
         timestep_seq = [0]
 
@@ -129,9 +134,12 @@ class DTAgent(Agent):
             if data_collection_obj is not None:
                 data_collection_obj.store_next_step(next_action, reward, next_state, done)
 
+            # Transform next state
+            next_state = image_transformation(next_state)
+
             # update sequences
             return_to_go_seq.append(return_to_go_seq[-1] - reward)
-            state_seq.append(next_state / 255.0)
+            state_seq.append(next_state)
             action_seq.append(next_action)
             timestep_seq.append(timestep_seq[-1] + 1)
             

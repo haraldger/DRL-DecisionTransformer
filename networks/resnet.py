@@ -79,12 +79,12 @@ class Bottleneck(nn.Module):
         return out
     
 class ResNet(nn.Module):
-    def __init__(self, block_type, layers, output_dim=768) -> None:
+    def __init__(self, block_type, layers, in_channels=3, output_dim=768) -> None:
         super().__init__()
         self.block_type = block_type
         
         # Initial convolutional layer
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3)
+        self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=7, stride=2, padding=3)
         # Batch normalization after the initial convolutional layer
         self.bn1 = nn.BatchNorm2d(64)
         # Max pooling after the batch normalization layer
@@ -139,20 +139,20 @@ class ResNet(nn.Module):
         return nn.Sequential(*blocks)
 
     
-def resnet18():
-    return ResNet(BasicBlock, [2, 2, 2, 2])
+def resnet18(in_channels=3):
+    return ResNet(BasicBlock, [2, 2, 2, 2], in_channels=in_channels)
 
-def resnet34():
-    return ResNet(BasicBlock, [3, 4, 6, 3])
+def resnet34(in_channels=3):
+    return ResNet(BasicBlock, [3, 4, 6, 3], in_channels=in_channels)
 
-def resnet50():
-    return ResNet(Bottleneck, [3, 4, 6, 3])
+def resnet50(in_channels=3):
+    return ResNet(Bottleneck, [3, 4, 6, 3], in_channels=in_channels)
 
-def resnet101():
-    return ResNet(Bottleneck, [3, 4, 23, 3])
+def resnet101(in_channels=3):
+    return ResNet(Bottleneck, [3, 4, 23, 3], in_channels=in_channels)
 
-def resnet152():
-    return ResNet(Bottleneck, [3, 8, 36, 3])
+def resnet152(in_channels=3):
+    return ResNet(Bottleneck, [3, 8, 36, 3], in_channels=in_channels)
 
 
 # Test the network
