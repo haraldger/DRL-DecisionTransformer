@@ -137,7 +137,7 @@ def run():
         if config['verbose'] and i % config['print_frequency'] == 0:
             print('Episode: {}/{}. Reward: {}'.format(i, config['num_episodes'], episode_reward))
 
-        if i % config['model_save_frequency'] == 0:
+        if config['save'] and i % config['model_save_frequency'] == 0:
             agent.save(save_name)
 
     env.close()
