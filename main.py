@@ -30,8 +30,6 @@ def main():
     
     args = parser.parse_args()
 
-
-
     # Set configuration
     global config
     config.update(constants.load())     # Load constants
