@@ -44,7 +44,7 @@ class DQNAgent(Agent):
 
     def act(self, state):
         # Reshape state to (1, 3, 210, 160) PyTorch tensor
-        torch_state = torch.tensor(state, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0)
+        torch_state = torch.tensor(state, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0).to(self.device)
 
         if np.random.rand() < self.scheduler.get_epsilon() or self.iterations < constants.INITIAL_EXPLORATION:
             action = self.env.action_space.sample()
