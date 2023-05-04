@@ -134,14 +134,14 @@ class DQN_vanilla(nn.Module):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.layers = nn.Sequential(
-            nn.Conv2d(4, 32, kernel_size=8, stride=4),
+            nn.Conv2d(3, 32, kernel_size=8, stride=4),
             nn.ReLU(),
             nn.Conv2d(32, 64, kernel_size=4, stride=2),
             nn.ReLU(),
             nn.Conv2d(64, 64, kernel_size=3, stride=1),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(3136, 512),
+            nn.Linear(22528, 512),
             nn.ReLU(),
             nn.Linear(512, 9)
         )
@@ -160,11 +160,25 @@ def run_tests():
     test_dqn_vanilla_forward_pass()
 
 def test_dqn_forward_pass():
+    print("Running DQN forward pass test...")
     model = DQN()
-    test_input = torch.randn(1, 3, 84, 84)
-    print("DQN output shape: ", model(test_input).shape)
+    test_input = torch.randn(2, 3, 210, 160)
+    print("Input shape: ", test_input.shape)
+    print("Batch size: ", test_input.shape[0])
+    y = model(test_input)
+    print("DQN output shape: ", y.shape)
+    assert y.shape == (2, 9)
+    print("DQN forward pass test passed!")
+    print()
 
 def test_dqn_vanilla_forward_pass():
+    print("Running DQN_vanilla forward pass test...")
     model = DQN_vanilla()
-    test_input = torch.randn(1, 4, 84, 84)
-    print("DQN_vanilla output shape: ", model(test_input).shape)
+    test_input = torch.randn(2, 3, 210, 160)
+    print("Input shape: ", test_input.shape)
+    print("Batch size: ", test_input.shape[0])
+    y = model(test_input)
+    print("DQN_vanilla output shape: ", y.shape)
+    assert y.shape == (2, 9)
+    print("DQN_vanilla forward pass test passed!")
+    print()
