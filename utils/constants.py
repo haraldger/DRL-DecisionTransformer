@@ -11,7 +11,7 @@ DECAY_RATE = 0.99                        # The rate at which epsilon decays. E.g
 DQN_LEARNING_RATE = 0.00025             # Learning rate for DQN
 GAMMA = 0.99                            # Discount factor for future rewards
 DQN_UPDATE_FREQUENCY = 4                # Number of actions taken between successive SGD updates
-DQN_TARGET_UPDATE_FREQUENCY = 16000      # Number of actions taken between successive target network updates
+DQN_TARGET_UPDATE_FREQUENCY = 40000      # Number of actions taken between successive target network updates
 BATCH_SIZE = 32                         # Batch size for Optimizer
 
 def load():
