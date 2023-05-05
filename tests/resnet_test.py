@@ -1,8 +1,10 @@
 from networks import resnet
 
 def run():
-    print("Testing resnets output shapes")
+    print("Unit tests for ResNet")
     print()
-    resnet.test_network_and_output_shapes()
+    resnet.run_tests()
     print()
+
+    
 
