@@ -4,6 +4,7 @@ import time
 import gym
 import numpy as np
 import torch
+import matplotlib.pyplot as plt
 from utils import experience_replay, epsilon_scheduler, constants
 from Agents import dt_agent, random_agent, dqn_agent
 
@@ -27,7 +28,8 @@ def main():
     parser.add_argument('-lr', '--learning_rate', type=float, help='Learning rate')
     parser.add_argument('-g', '--gamma', type=float, help='Discount factor')
     parser.add_argument('-l', '--load', type=str, default="None", help='Load model. Provide name of model file, without extension or folder')
-    
+    parser.add_argument('-ie', '--initial_epsilon', type=float, help='Initial epsilon for epsilon-greedy exploration')
+
     args = parser.parse_args()
 
     # Set configuration
@@ -49,6 +51,9 @@ def main():
 
     if args.gamma:
         config['gamma'] = args.gamma
+
+    if args.initial_epsilon:
+        config['initial_epsilon'] = args.initial_epsilon
         
 
     print("Print frequency is: ", config['print_frequency'])
@@ -83,6 +88,7 @@ def run():
     # Reset environment
     state, _ = env.reset()
     inactive_frames = 65
+    total_frames = 0
 
 
     # Initialize objects
@@ -111,7 +117,8 @@ def run():
 
 
     # Game loop
-
+    last_100_rewards = []
+    mean_running_rewards = []
     for i in range(config['num_episodes']):
         episode_reward = 0
         
@@ -133,12 +140,26 @@ def run():
             if config['train']:
                 agent.train()
 
+            total_frames += 1
+
+        # Monitoring performance
+        last_100_rewards.append(episode_reward)
+        if len(last_100_rewards) > 100:
+            last_100_rewards.pop(0)
+        mean_running_rewards.append(np.mean(last_100_rewards))
+
         state, _ = env.reset()
         if config['verbose'] and i % config['print_frequency'] == 0:
-            print('Episode: {}/{}. Reward: {}'.format(i, config['num_episodes'], episode_reward))
+            print('Episode: {}/{}, total iterations: {}. Mean running reward: {}'.format(i, config['num_episodes'], total_frames, np.mean(last_100_rewards)))
 
         if config['save'] and i % config['model_save_frequency'] == 0:
             agent.save(save_name)
+            # Save performance graph
+            plt.plot(range(len(mean_running_rewards)), mean_running_rewards)
+            plt.xlabel('Episodes')
+            plt.ylabel('Mean running reward')
+            plt.savefig('results/mean_rewards.png')
+        
 
     env.close()
 
