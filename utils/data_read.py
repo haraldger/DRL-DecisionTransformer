@@ -10,7 +10,7 @@ import torch
 import cv2 as cv
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
-from utils.data_load_tranform import image_transformation
+from utils.data_load_transform import image_transformation
 
 state_shape = (210, 160, 3)
 
