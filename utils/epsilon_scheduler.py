@@ -17,10 +17,8 @@ class EpsilonScheduler:
             decay_mode == 'single' or 'linear'.
         """
         self.initial_epsilon = initial_epsilon
-        print("Initial epsilon is: ", self.initial_epsilon)
         self.decay_frames = decay_frames
         self.final_epsilon = final_epsilon
-        print("Final epsilon is: ", self.final_epsilon)
         self.decay_mode = decay_mode
         self.decay_rate = decay_rate
         self.start_frames = start_frames
