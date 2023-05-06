@@ -1,6 +1,6 @@
 import gym
 import numpy as np
-from utils import experience_replay, epsilon_scheduler
+from utils import experience_replay, epsilon_scheduler, constants
 from Agents import dqn_agent
 
 def run():
@@ -15,9 +15,11 @@ def run():
     observation, _ = env.reset()
     inactive_frames = 65
 
+    config = constants.load
+
     replay_buffer = experience_replay.ReplayBuffer(100)
     scheduler = epsilon_scheduler.EpsilonScheduler()
-    agent = dqn_agent.DQNAgent(env, replay_buffer=replay_buffer, scheduler=scheduler)
+    agent = dqn_agent.DQNAgent(env, config, replay_buffer=replay_buffer, scheduler=scheduler)
 
     for _ in range(inactive_frames):
         state, reward, done, info, _ = env.step(0)
