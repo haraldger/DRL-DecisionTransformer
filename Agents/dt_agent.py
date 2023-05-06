@@ -64,7 +64,7 @@ class DTAgent(Agent):
                 optimizer.zero_grad()
                 print(timesteps)
                 print(type(timesteps))
-                a_preds = self.model.forward(states, actions, returns_to_go, timesteps.to(torch.int64))
+                a_preds = self.model.forward(states, actions, returns_to_go, timesteps.to(torch.long))
                 one_hot_actions = F.one_hot(actions, num_classes=9)
                 loss = self.cross_entropy_loss(a_preds, one_hot_actions)
                 loss.backward()
