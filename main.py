@@ -82,7 +82,7 @@ def main():
 
     # Initialize environment
     global env 
-    env = gym.make('ALE/MsPacman-v5')
+    env = gym.make('ALE/MsPacman-v5', render_mode='human')
 
     print('Playing MsPacman with {} agent'.format(args.agent))
     print('Mode: {}'.format('train' if args.train else 'evaluation'))
@@ -115,7 +115,7 @@ def run():
 
     global agent
     if config['agent'] == 'random':
-        agent = random_agent.RandomAgent(env)
+        agent = random_agent.RandomAgent(env, config)
 
     elif config['agent'] == 'dqn':
         agent = dqn_agent.DQNAgent(env, config, replay_buffer, scheduler)
@@ -127,7 +127,7 @@ def run():
             agent.eval(True)
 
     elif config['agent'] == 'dt':
-        agent = dt_agent.DTAgent(env)
+        agent = dt_agent.DTAgent(env, config)
 
     
 
@@ -146,13 +146,21 @@ def run():
 
         while not done:     # Run episode until done
             action = agent.act(state)
-            next_state, reward, done, info, _ = env.step(action)
-            episode_reward += reward
+            cumulative_reward = 0
+            cumulative_state = state
+            for _ in range(3):
+                next_state, reward, done, info, _ = env.step(action)
+                cumulative_reward += reward
+                cumulative_state = np.maximum(cumulative_state, next_state)
+                if done:
+                    break
+
+            episode_reward += cumulative_reward
             
             if config['experience_replay']:
-                replay_buffer.add(state, action, next_state, reward, done)
+                replay_buffer.add(state, action, cumulative_state, cumulative_reward, done)
 
-            state = next_state
+            state = cumulative_state
 
             if config['train']:
                 agent.train()
@@ -205,6 +213,8 @@ def run():
         
 
     env.close()
+
+
 
 def evaluate():
     pass
