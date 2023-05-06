@@ -16,6 +16,7 @@ class DTAgent(Agent):
     def __init__(
             self,
             env,
+            config,
             num_blocks=12, 
             num_heads=12, 
             embedding_dim=768, 
@@ -28,7 +29,7 @@ class DTAgent(Agent):
         self.act_dim = env.action_space.n
         self.max_ep_len = max_ep_len
 
-        super().__init__(env, *args, **kwargs)
+        super(DTAgent, env, config).__init__(env, config, *args, **kwargs)
         self.model = DecisionTransformer(
             num_blocks,
             num_heads,
