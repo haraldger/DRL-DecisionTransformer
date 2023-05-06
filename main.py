@@ -48,7 +48,7 @@ def main():
         config['print_frequency'] = args.print_frequency
 
     if args.learning_rate:
-        config['learning_rate'] = args.learning_rate
+        config['dqn_learning_rate'] = args.learning_rate
 
     if args.gamma:
         config['gamma'] = args.gamma
