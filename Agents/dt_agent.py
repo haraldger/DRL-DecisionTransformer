@@ -134,11 +134,6 @@ class DTAgent(Agent):
             action_seq_torch = torch.tensor(action_seq).int().reshape(1, seq_length, 1)
             timestep_seq_torch = torch.tensor(timestep_seq).int().reshape(1, seq_length, 1)
 
-            print(return_to_go_seq_torch.shape)
-            print(state_seq_torch.shape)
-            print(action_seq_torch.shape)
-            print(timestep_seq_torch.shape)
-
             next_action_pred = self.predict_next_action(state_seq_torch, action_seq_torch, return_to_go_seq_torch, timestep_seq_torch)
             next_action = torch.argmax(next_action_pred)
             
