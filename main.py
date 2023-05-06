@@ -25,11 +25,13 @@ def main():
     parser.add_argument('-n', '--num_episodes', type=int, default=100000, help='Number of episodes to train')
     parser.add_argument('-v', '--verbose', action='store_true', help='Verbose mode')
     parser.add_argument('-pf', '--print_frequency', type=int, help='Frequency in episodes to print progress')
+    parser.add_argument('--evaluation_frequency', type=int, help='Frequency in episodes to evaluate model')
     parser.add_argument('-lr', '--learning_rate', type=float, help='Learning rate')
     parser.add_argument('-g', '--gamma', type=float, help='Discount factor')
     parser.add_argument('-l', '--load', type=str, default="None", help='Load model. Provide name of model file, without extension or folder')
-    parser.add_argument('-ie', '--initial_epsilon', type=float, help='Initial epsilon for epsilon-greedy exploration')
-    parser.add_argument('-fe', '--final_epsilon', type=float, help='Final epsilon for epsilon-greedy exploration')
+    parser.add_argument('--initial_epsilon', type=float, help='Initial epsilon for epsilon-greedy exploration')
+    parser.add_argument('--final_epsilon', type=float, help='Final epsilon for epsilon-greedy exploration')
+    parser.add_argument('--initial_exploration', type=int, help='Number of frames to perform random actions before starting training')
 
     args = parser.parse_args()
 
@@ -47,8 +49,11 @@ def main():
     if args.print_frequency is not None:
         config['print_frequency'] = args.print_frequency
 
+    if args.evaluation_frequency is not None:
+        config['evaluation_frequency'] = args.evaluation_frequency
+
     if args.learning_rate is not None:
-        config['dqn_learning_rate'] = args.learning_rate
+        config['learning_rate'] = args.learning_rate
 
     if args.gamma is not None:
         config['gamma'] = args.gamma
@@ -58,6 +63,9 @@ def main():
 
     if args.final_epsilon is not None:
         config['final_epsilon'] = args.final_epsilon
+
+    if args.initial_exploration is not None:
+        config['initial_exploration'] = args.initial_exploration
         
 
     print("Print frequency is: ", config['print_frequency'])
@@ -109,13 +117,13 @@ def run():
         agent = random_agent.RandomAgent(env)
 
     elif config['agent'] == 'dqn':
-        agent = dqn_agent.DQNAgent(env, replay_buffer, scheduler, config['dqn_learning_rate'], config['gamma'])
+        agent = dqn_agent.DQNAgent(env, config, replay_buffer, scheduler)
         
         if config['load'] != 'None':
             agent.load(config['load'])
         
         if not config['train']:
-            agent.eval()
+            agent.eval(True)
 
     elif config['agent'] == 'dt':
         agent = dt_agent.DTAgent(env)
@@ -168,10 +176,17 @@ def run():
             plt.xlabel('Episodes')
             plt.ylabel('Mean running reward')
             plt.savefig('results/mean_rewards.png')
+
+        if config['train'] and i % config['evaluation_frequency'] == 0 and i != 0:
+            agent.eval(True)
+            
+            agent.eval(False)
         
 
     env.close()
 
+def evaluate():
+    pass
 
 def tests():
     dqn_agent.run_tests()

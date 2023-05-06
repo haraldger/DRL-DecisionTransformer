@@ -2,12 +2,11 @@ import numpy as np
 import torch
 from torch import nn
 from .agent import Agent
-from utils import experience_replay, epsilon_scheduler, constants
+from utils import experience_replay, epsilon_scheduler
 
 class DQNAgent(Agent):
-    def __init__(self, env, replay_buffer=None, scheduler=None, 
-                 learning_rate=constants.DQN_LEARNING_RATE, gamma=constants.GAMMA):
-        super(DQNAgent, self).__init__(env)
+    def __init__(self, env, config, replay_buffer=None, scheduler=None):
+        super(DQNAgent, self).__init__(env, config)
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.iterations = 0
@@ -22,8 +21,8 @@ class DQNAgent(Agent):
 
         # Hyperparameters
 
-        self.learning_rate = learning_rate
-        self.gamma = gamma
+        self.learning_rate = self.config['learning_rate']
+        self.gamma = self.config['gamma']
 
         # Initialize optimization objects
 
@@ -51,7 +50,7 @@ class DQNAgent(Agent):
             with torch.no_grad():
                 return self.policy_net(torch_state).argmax().item()
 
-        if np.random.rand() < self.scheduler.get_epsilon() or self.iterations < constants.INITIAL_EXPLORATION:
+        if np.random.rand() < self.scheduler.get_epsilon() or self.iterations < self.config['initial_exploration']:
             action = self.env.action_space.sample()
             return action
         else:
@@ -63,12 +62,12 @@ class DQNAgent(Agent):
         Perform one iteration of training.
         This function is called once per frame when training.
         """
-        if self.iterations < constants.INITIAL_EXPLORATION:
+        if self.iterations < self.config['initial_exploration']:
             self.iterations += 1
             return
 
-        if self.iterations % constants.DQN_UPDATE_FREQUENCY == 0:   # Train 
-            state_sample, action_sample, next_state_sample, reward_sample, done_sample = self.replay_buffer.sample_tensor_batch(constants.BATCH_SIZE, self.device)
+        if self.iterations % self.config['dqn_update_frequency'] == 0:   # Train 
+            state_sample, action_sample, next_state_sample, reward_sample, done_sample = self.replay_buffer.sample_tensor_batch(self.config['batch_size'], self.device)
             
             target_q_values = self.target_net(next_state_sample).max(1)[0].detach().view(-1, 1)
             targets = reward_sample + self.gamma * target_q_values * (1 - done_sample.long())
@@ -81,19 +80,22 @@ class DQNAgent(Agent):
             loss.backward()
             self.optimizer.step()
 
-        if self.iterations % constants.DQN_TARGET_UPDATE_FREQUENCY == 0:   # Update target network
+        if self.iterations % self.config['dqn_target_update_frequency'] == 0:   # Update target network
             self.target_net.load_state_dict(self.policy_net.state_dict())
 
         self.scheduler.step()
         self.iterations += 1
 
-    def eval(self):
+    def eval(self, value=True):
         """
         Set agent to evaluation mode. 
         Unlike train, this is a toggle rather than being called once per frame.
         """
-        self.training_mode = False
-        self.policy_net.eval()
+        self.training_mode = value
+        if value == False:
+            self.policy_net.train()
+        else:
+            self.policy_net.eval()
 
     def save(self, name):
         torch.save(self.policy_net.state_dict(), "results/" + name + ".pt")
