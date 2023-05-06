@@ -82,7 +82,7 @@ def main():
 
     # Initialize environment
     global env 
-    env = gym.make('ALE/MsPacman-v5', render_mode='human')
+    env = gym.make('ALE/MsPacman-v5')
 
     print('Playing MsPacman with {} agent'.format(args.agent))
     print('Mode: {}'.format('train' if args.train else 'evaluation'))
