@@ -158,29 +158,38 @@ def resnet152():
 # Test the network
 
 def test_network_and_output_shapes():
+    print('Testing network and output shapes...')
+
     net = resnet18()
     x = torch.randn(2, 3, 210, 160)
+    print(f'Input shape = {x.shape}')
+    print(f'Batch size = {x.shape[0]}')
     y = net(x)
-    print(f'ResNet18 network = {net}')
-    print(f'ResNet18 output shape = {y[-1].shape}')
+    print(f'ResNet18 output shape = {y.shape}')
+    assert y.shape == (2, 768)
 
     net = resnet34()
     y = net(x)
-    print(f'ResNet34 network = {net}')
-    print(f'ResNet34 output shape = {y[-1].shape}')
+    print(f'ResNet34 output shape = {y.shape}')
+    assert y.shape == (2, 768)
 
     net = resnet50()
     y = net(x)
-    print(f'ResNet50 network = {net}')
-    print(f'ResNet50 output shape = {y[-1].shape}')
+    print(f'ResNet50 output shape = {y.shape}')
+    assert y.shape == (2, 768)
 
     net = resnet101()
     y = net(x)
-    print(f'ResNet101 network = {net}')
-    print(f'ResNet101 output shape = {y[-1].shape}')
+    print(f'ResNet101 output shape = {y.shape}')
+    assert y.shape == (2, 768)
 
     net = resnet152()
     y = net(x)
-    print(f'ResNet152 network = {net}')
-    print(f'ResNet152 output shape = {y[-1].shape}')
+    print(f'ResNet152 output shape = {y.shape}')   
+    assert y.shape == (2, 768)
+
+    print('Tests passed!')
+
+def run_tests():
+    test_network_and_output_shapes()
 

@@ -1,0 +1,20 @@
+20230504-005456.pt
+DQN trained for 3k episodes using the following hyperparameters:
+
+PRINT_FREQUENCY = 1000            
+MODEL_SAVE_FREQUENCY = 1000       
+REPLAY_MEMORY_SIZE = 50000        
+DIMENSIONS = (210, 160, 3)        
+INITIAL_EPSILON = 1.0             
+FINAL_EPSILON = 0.1               
+INITIAL_EXPLORATION = 10000       
+DECAY_FRAMES = 1E6                
+DECAY_MODE = 'linear'             
+DECAY_RATE = 0.99                 
+DQN_LEARNING_RATE = 0.00025       
+GAMMA = 0.99                      
+DQN_UPDATE_FREQUENCY = 1          
+DQN_TARGET_UPDATE_FREQUENCY = 1000
+BATCH_SIZE = 32                   
+
+----------------------------------

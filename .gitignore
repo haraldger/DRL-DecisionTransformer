@@ -281,4 +281,7 @@ $RECYCLE.BIN/
 # h5 dataset files
 *.h5
 
+# PyTorch checkpoint files
+*.pt 
+
 # End of https://www.toptal.com/developers/gitignore/api/venv,git,python,visualstudiocode,macos,windows

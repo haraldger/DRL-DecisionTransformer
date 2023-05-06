@@ -43,9 +43,15 @@ class DecisionTransformer(nn.Module):
         super().__init__()
 
 class DTAgent(Agent):
-    def __init__(self, env):
-        super(DTAgent, self).__init__(env)
+    def __init__(self, env, config):
+        super(DTAgent, self).__init__(env, config)
         self.model = DecisionTransformer()
 
     def act(self, state):
         return self.env.action_space.sample()
+    
+    def train(self, end_of_episode=False):
+        """
+        Perform one iteration of training.
+        """
+        pass
