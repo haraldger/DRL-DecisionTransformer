@@ -54,9 +54,11 @@ def main():
         config['gamma'] = args.gamma
 
     if args.initial_epsilon:
+        print("args.initial_epsilon is: ", args.initial_epsilon)
         config['initial_epsilon'] = args.initial_epsilon
 
     if args.final_epsilon:
+        print("args.final_epsilon is: ", args.final_epsilon)
         config['final_epsilon'] = args.final_epsilon
         
 
@@ -102,8 +104,6 @@ def run():
 
     global scheduler
     if config['epsilon_scheduler']:
-        print("config['initial_epsilon'] is: ", config['initial_epsilon'])
-        print("config['final_epsilon'] is: ", config['final_epsilon'])
         scheduler = epsilon_scheduler.EpsilonScheduler(config['initial_epsilon'], config['final_epsilon'], config['decay_frames'], config['decay_mode'], config['decay_rate'])
 
     global agent
