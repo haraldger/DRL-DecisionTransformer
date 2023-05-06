@@ -15,7 +15,7 @@ def run():
     observation, _ = env.reset()
     inactive_frames = 65
 
-    config = constants.load
+    config = constants.load()
 
     replay_buffer = experience_replay.ReplayBuffer(100)
     scheduler = epsilon_scheduler.EpsilonScheduler()
