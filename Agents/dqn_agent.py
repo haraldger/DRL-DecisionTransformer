@@ -55,7 +55,12 @@ class DQNAgent(Agent):
             return action
         else:
             with torch.no_grad():
-                return self.policy_net(torch_state).argmax().item()
+                q_values = self.policy_net(torch_state)
+                print(q_values)
+                q_max = q_values.argmax().item()
+                print(q_max)
+                input()
+                return q_max
     
     def train(self):
         """
