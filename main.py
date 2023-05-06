@@ -29,6 +29,7 @@ def main():
     parser.add_argument('-g', '--gamma', type=float, help='Discount factor')
     parser.add_argument('-l', '--load', type=str, default="None", help='Load model. Provide name of model file, without extension or folder')
     parser.add_argument('-ie', '--initial_epsilon', type=float, help='Initial epsilon for epsilon-greedy exploration')
+    parser.add_argument('-fe', '--final_epsilon', type=float, help='Final epsilon for epsilon-greedy exploration')
 
     args = parser.parse_args()
 
@@ -54,6 +55,9 @@ def main():
 
     if args.initial_epsilon:
         config['initial_epsilon'] = args.initial_epsilon
+
+    if args.final_epsilon:
+        config['final_epsilon'] = args.final_epsilon
         
 
     print("Print frequency is: ", config['print_frequency'])
