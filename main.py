@@ -184,6 +184,7 @@ def run():
             for ep in range(10):
                 state, _ = env.reset()
                 episode_reward = 0
+                done = False
                 while not done:
                     action = agent.act(state)
                     next_state, reward, done, info, _ = env.step(action)
