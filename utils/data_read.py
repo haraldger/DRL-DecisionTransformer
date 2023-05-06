@@ -10,7 +10,7 @@ import torch
 import cv2 as cv
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
-from utils.data_load_transform import image_transformation
+from utils.data_load_transform import image_transformation, image_transformation_no_norm
 
 state_shape = (210, 160, 3)
 
@@ -42,15 +42,16 @@ class TrajectoryData:
 class DataReader(Dataset):
     all_traj_data = []
 
-    def __init__(self, read_file, k_last_iters=1000, transform=True):
+    def __init__(self, read_file, k_last_iters=1000, transform=None, float_state=False):
         super().__init__()
         self.all_traj_data = []
         
         # When fetching a traj, will get the last k iterations of it
         self.k_last_iters = k_last_iters
     
-        # If true, will grayscale and divide images by 255
+        # If passed, will use transformation on the state
         self.transform = transform
+        self.float_state = float_state
 
         # Processes the entire file and stores it into the all_traj_data field
         with h5py.File(read_file) as file:
@@ -89,11 +90,13 @@ class DataReader(Dataset):
         # Nomralize image data to between 0 and 1, also have shape (seq_length, channels, height, width)
         states = np.stack([t[0] for t in traj_pairs])
 
-        if self.transform:
+        if self.float_state:
             states = torch.from_numpy(states).permute(0, 3, 1, 2).float()
-            states = image_transformation(states)
         else:
-            states = torch.from_numpy(states).permute(0, 3, 1, 2).int()
+            states = torch.from_numpy(states).permute(0, 3, 1, 2)
+
+        if self.transform is not None:
+            states = self.transform(states)
         
         # DT model doesn't even use next_states, so just don't reutrn them 
         # next_states = torch.tensor([t[3] for t in traj_pairs]).permute(0, 3, 1, 2).float() / 255.0
@@ -101,7 +104,7 @@ class DataReader(Dataset):
         actions = torch.tensor([t[1] for t in traj_pairs]).short().unsqueeze(-1)
         rewards = torch.tensor([t[2] for t in traj_pairs]).short().unsqueeze(-1)
         rewards_to_go = torch.tensor([t[4] for t in traj_pairs]).float().unsqueeze(-1)
-        timesteps = torch.tensor([t[5] for t in traj_pairs]).float().unsqueeze(-1)
+        timesteps = torch.tensor([t[5] for t in traj_pairs]).int().unsqueeze(-1)
         dones = torch.tensor([t[6] for t in traj_pairs]).float().unsqueeze(-1)        
         
         return states, actions, rewards, rewards_to_go, timesteps, dones
@@ -112,7 +115,7 @@ def run_tests():
     # Test with file from data_collection.py
     TEST_OUTPUT_FILENAME = "test_traj_long.h5"
 
-    reader = DataReader(TEST_OUTPUT_FILENAME)
+    reader = DataReader(TEST_OUTPUT_FILENAME, transform=image_transformation_no_norm, float_state=False)
 
     print("Number of data trajectories: ", len(reader.all_traj_data))
 
@@ -123,6 +126,9 @@ def run_tests():
         print("all state in batch shape: ", states.shape)
         print("batch first state seq shape: ", states[0].shape)
         
+        print("state data type: ", type(states[0,0,0,0,0].item()))
+        print("data: ", states[0,0,0,0,0])
+
         print("actions: ", actions[:,0:4])
         print("rewards: ", rewards[:,0:4])
         print("rewards to go: ", rewards_to_go[:,0:4])
