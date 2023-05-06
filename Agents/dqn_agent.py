@@ -52,6 +52,7 @@ class DQNAgent(Agent):
                 return self.policy_net(torch_state).argmax().item()
 
         if np.random.rand() < self.scheduler.get_epsilon() or self.iterations < constants.INITIAL_EXPLORATION:
+            print("Explore")
             action = self.env.action_space.sample()
             return action
         else:
