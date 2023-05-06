@@ -38,7 +38,7 @@ class DQNAgent(Agent):
             self.replay_buffer = replay_buffer
 
         if scheduler is None:
-            self.scheduler = scheduler.EpsilonScheduler()
+            self.scheduler = epsilon_scheduler.EpsilonScheduler()
         else:
             self.scheduler = scheduler
 
