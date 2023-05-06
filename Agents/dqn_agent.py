@@ -91,7 +91,7 @@ class DQNAgent(Agent):
         Set agent to evaluation mode. 
         Unlike train, this is a toggle rather than being called once per frame.
         """
-        self.training_mode = value
+        self.training_mode = not value
         if value == False:
             self.policy_net.train()
         else:
