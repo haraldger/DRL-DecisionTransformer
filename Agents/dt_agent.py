@@ -63,6 +63,7 @@ class DTAgent(Agent):
             for batch_idx, (states, actions, rewards, returns_to_go, timesteps, dones) in enumerate(train_loader):
                 optimizer.zero_grad()
                 print(timesteps)
+                print(timesteps.shape)
                 print(type(timesteps))
                 a_preds = self.model.forward(states, actions, returns_to_go, timesteps.to(torch.long))
                 one_hot_actions = F.one_hot(actions, num_classes=9)
