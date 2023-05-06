@@ -45,12 +45,13 @@ class DTAgent(Agent):
 
     def cross_entropy_loss(self, action_preds, actions):
         # compute negative log-likelihood loss
-        return F.binary_cross_entropy(action_preds, actions)
+        return F.cross_entropy(action_preds, actions)
     
     def train(
             self, 
             dataset, 
             batch_size,
+            num_epochs,
             print_freq=5
     ):
         learning_rate = self.config["learning_rate"]
@@ -58,18 +59,19 @@ class DTAgent(Agent):
         # Training offline with expert tracjectories
         optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        for epoch in range(num_epochs):
+            for batch_idx, (states, actions, rewards, returns_to_go, timesteps, dones) in enumerate(train_loader):
+                optimizer.zero_grad()
+                a_preds = self.model.forward(states, actions.int(), returns_to_go, timesteps.int())
+                one_hot_actions = F.one_hot(actions, num_classes=9)
+                loss = self.cross_entropy_loss(a_preds, one_hot_actions)
+                loss.backward()
+                optimizer.step()
 
-        for batch_idx, (states, actions, rewards, returns_to_go, timesteps, dones) in enumerate(train_loader):
-            optimizer.zero_grad()
-            a_preds = self.model.forward(states, actions.int(), returns_to_go, timesteps.int())
-            one_hot_actions = F.one_hot(actions, num_classes=9)
-            loss = self.cross_entropy_loss(a_preds, one_hot_actions)
-            loss.backward()
-            optimizer.step()
-
-            if batch_idx % print_freq == (print_freq-1):
-                print('Batch [{}/{}], Loss: {:.4f}'.format(
-                    batch_idx+1, len(train_loader), loss.item()))
+                if batch_idx % print_freq == (print_freq-1):
+                    print('Epoch [{}/{}], Batch [{}/{}], Loss: {:.4f}'.format(
+                    epoch+1, num_epochs, batch_idx+1, len(train_loader), loss.item()))
+            
 
     def predict_next_action(self, state_seq, action_seq, return_to_go_seq, timestep_seq):
         """ 
