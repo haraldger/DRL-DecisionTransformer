@@ -62,7 +62,7 @@ class DTAgent(Agent):
         for epoch in range(num_epochs):
             for batch_idx, (states, actions, rewards, returns_to_go, timesteps, dones) in enumerate(train_loader):
                 optimizer.zero_grad()
-                a_preds = self.model.forward(states, actions.int(), returns_to_go, timesteps.int())
+                a_preds = self.model.forward(states, actions.long(), returns_to_go, timesteps.long())
                 one_hot_actions = F.one_hot(actions, num_classes=9)
                 loss = self.cross_entropy_loss(a_preds, one_hot_actions)
                 loss.backward()
