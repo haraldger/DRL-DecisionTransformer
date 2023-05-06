@@ -11,6 +11,7 @@ class DQNAgent(Agent):
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.iterations = 0
+        self.training_mode = True
 
         # Initialize networks
 
@@ -45,6 +46,10 @@ class DQNAgent(Agent):
     def act(self, state):
         # Reshape state to (1, 3, 210, 160) PyTorch tensor
         torch_state = torch.tensor(state, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0).to(self.device)
+
+        if self.training_mode == False: 
+            with torch.no_grad():
+                return self.policy_net(torch_state).argmax().item()
 
         if np.random.rand() < self.scheduler.get_epsilon() or self.iterations < constants.INITIAL_EXPLORATION:
             action = self.env.action_space.sample()
@@ -81,6 +86,14 @@ class DQNAgent(Agent):
 
         self.scheduler.step()
         self.iterations += 1
+
+    def eval(self):
+        """
+        Set agent to evaluation mode. 
+        Unlike train, this is a toggle rather than being called once per frame.
+        """
+        self.training_mode = False
+        self.policy_net.eval()
 
     def save(self, name):
         torch.save(self.policy_net.state_dict(), "results/" + name + ".pt")

@@ -103,11 +103,17 @@ def run():
     global agent
     if config['agent'] == 'random':
         agent = random_agent.RandomAgent(env)
+
     elif config['agent'] == 'dqn':
         agent = dqn_agent.DQNAgent(env, replay_buffer, scheduler, config['dqn_learning_rate'], config['gamma'])
+        
         if config['load'] != 'None':
             agent.load(config['load'])
             save_name = config['load']      # If we are loading a model, we want to save it with the same name
+        
+        if not config['train']:
+            agent.eval()
+
     elif config['agent'] == 'dt':
         agent = dt_agent.DTAgent(env)
 
