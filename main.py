@@ -25,10 +25,14 @@ def main():
     parser.add_argument('-n', '--num_episodes', type=int, default=100000, help='Number of episodes to train')
     parser.add_argument('-v', '--verbose', action='store_true', help='Verbose mode')
     parser.add_argument('-pf', '--print_frequency', type=int, help='Frequency in episodes to print progress')
+    parser.add_argument('--evaluation_frequency', type=int, help='Frequency in episodes to evaluate model')
+    
     parser.add_argument('-lr', '--learning_rate', type=float, help='Learning rate')
     parser.add_argument('-g', '--gamma', type=float, help='Discount factor')
     parser.add_argument('-l', '--load', type=str, default="None", help='Load model. Provide name of model file, without extension or folder')
-    parser.add_argument('-ie', '--initial_epsilon', type=float, help='Initial epsilon for epsilon-greedy exploration')
+    parser.add_argument('--initial_epsilon', type=float, help='Initial epsilon for epsilon-greedy exploration')
+    parser.add_argument('--final_epsilon', type=float, help='Final epsilon for epsilon-greedy exploration')
+    parser.add_argument('--initial_exploration', type=int, help='Number of frames to perform random actions before starting training')
 
     args = parser.parse_args()
 
@@ -43,17 +47,26 @@ def main():
     config['verbose'] = args.verbose
     config['load'] = args.load
 
-    if args.print_frequency:
+    if args.print_frequency is not None:
         config['print_frequency'] = args.print_frequency
 
-    if args.learning_rate:
+    if args.evaluation_frequency is not None:
+        config['evaluation_frequency'] = args.evaluation_frequency
+
+    if args.learning_rate is not None:
         config['learning_rate'] = args.learning_rate
 
-    if args.gamma:
+    if args.gamma is not None:
         config['gamma'] = args.gamma
 
-    if args.initial_epsilon:
+    if args.initial_epsilon is not None:
         config['initial_epsilon'] = args.initial_epsilon
+
+    if args.final_epsilon is not None:
+        config['final_epsilon'] = args.final_epsilon
+
+    if args.initial_exploration is not None:
+        config['initial_exploration'] = args.initial_exploration
         
 
     print("Print frequency is: ", config['print_frequency'])
@@ -102,23 +115,27 @@ def run():
 
     global agent
     if config['agent'] == 'random':
-        agent = random_agent.RandomAgent(env)
+        agent = random_agent.RandomAgent(env, config)
+
     elif config['agent'] == 'dqn':
-        agent = dqn_agent.DQNAgent(env, replay_buffer, scheduler, config['dqn_learning_rate'], config['gamma'])
+        agent = dqn_agent.DQNAgent(env, config, replay_buffer, scheduler)
+        
         if config['load'] != 'None':
             agent.load(config['load'])
-            save_name = config['load']      # If we are loading a model, we want to save it with the same name
-    elif config['agent'] == 'dt':
-        agent = dt_agent.DTAgent(env)
+        
+        if not config['train']:
+            agent.eval(True)
 
-    if config['save'] and config['load'] == 'None':     # If we are training and not loading a model
-        save_name = time.strftime("%Y%m%d-%H%M%S")
+    elif config['agent'] == 'dt':
+        agent = dt_agent.DTAgent(env, config)
+
     
 
 
     # Game loop
     last_100_rewards = []
     mean_running_rewards = []
+    mean_evaluation_rewards = []
     for i in range(config['num_episodes']):
         episode_reward = 0
         
@@ -129,13 +146,21 @@ def run():
 
         while not done:     # Run episode until done
             action = agent.act(state)
-            next_state, reward, done, info, _ = env.step(action)
-            episode_reward += reward
+            cumulative_reward = 0
+            cumulative_state = state
+            for _ in range(3):
+                next_state, reward, done, info, _ = env.step(action)
+                cumulative_reward += reward
+                cumulative_state = np.maximum(cumulative_state, next_state)
+                if done:
+                    break
+
+            episode_reward += cumulative_reward
             
             if config['experience_replay']:
-                replay_buffer.add(state, action, next_state, reward, done)
+                replay_buffer.add(state, action, cumulative_state, cumulative_reward, done)
 
-            state = next_state
+            state = cumulative_state
 
             if config['train']:
                 agent.train()
@@ -152,17 +177,47 @@ def run():
         if config['verbose'] and i % config['print_frequency'] == 0:
             print('Episode: {}/{}, total iterations: {}. Mean running reward: {}'.format(i, config['num_episodes'], total_frames, np.mean(last_100_rewards)))
 
-        if config['save'] and i % config['model_save_frequency'] == 0:
+        if config['save'] and i % config['model_save_frequency'] == 0 and i != 0:
+            save_name = time.strftime("%Y%m%d-%H%M%S")
+            save_name += '_episodes_' + str(i)
             agent.save(save_name)
             # Save performance graph
             plt.plot(range(len(mean_running_rewards)), mean_running_rewards)
             plt.xlabel('Episodes')
             plt.ylabel('Mean running reward')
             plt.savefig('results/mean_rewards.png')
+
+        if config['train'] and i % config['evaluation_frequency'] == 0 and i != 0:
+            evaluation_rewards = []
+            agent.eval(True)
+            for ep in range(10):
+                state, _ = env.reset()
+                episode_reward = 0
+                done = False
+                while not done:
+                    action = agent.act(state)
+                    next_state, reward, done, info, _ = env.step(action)
+                    episode_reward += reward
+                    state = next_state
+                evaluation_rewards.append(episode_reward)
+
+            mean_evaluation_reward = np.mean(evaluation_rewards)
+            mean_evaluation_rewards.append(mean_evaluation_reward)
+            print('Evaluation rewards: ', evaluation_rewards, ' Mean: ', mean_evaluation_reward)
+            agent.eval(False)
+
+            plt.plot(range(len(mean_evaluation_rewards)), mean_evaluation_rewards)
+            plt.xlabel('Episodes')
+            plt.ylabel('Mean evaluation reward')
+            plt.savefig('results/mean_evaluation_rewards.png')
         
 
     env.close()
 
+
+
+def evaluate():
+    pass
 
 def tests():
     dqn_agent.run_tests()
