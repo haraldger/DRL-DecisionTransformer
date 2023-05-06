@@ -178,8 +178,19 @@ def run():
             plt.savefig('results/mean_rewards.png')
 
         if config['train'] and i % config['evaluation_frequency'] == 0 and i != 0:
+            evaluation_rewards = []
             agent.eval(True)
-            
+            for ep in range(10):
+                state, _ = env.reset()
+                episode_reward = 0
+                while not done:
+                    action = agent.act(state)
+                    next_state, reward, done, info, _ = env.step(action)
+                    episode_reward += reward
+                    state = next_state
+                evaluation_rewards.append(episode_reward)
+
+            print('Evaluation rewards: ', evaluation_rewards, ' Mean: ', np.mean(evaluation_rewards))
             agent.eval(False)
         
 
