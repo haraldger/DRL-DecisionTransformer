@@ -44,23 +44,19 @@ def main():
     config['verbose'] = args.verbose
     config['load'] = args.load
 
-    if args.print_frequency:
+    if args.print_frequency is not None:
         config['print_frequency'] = args.print_frequency
 
-    if args.learning_rate:
+    if args.learning_rate is not None:
         config['dqn_learning_rate'] = args.learning_rate
 
-    if args.gamma:
+    if args.gamma is not None:
         config['gamma'] = args.gamma
 
-    print("args.initial_epsilon is: ", args.initial_epsilon)
-    print("check if args.initial_epsilon: ", args.initial_epsilon==True)
     if args.initial_epsilon is not None:
-        print("args.initial_epsilon is: ", args.initial_epsilon)
         config['initial_epsilon'] = args.initial_epsilon
 
-    if args.final_epsilon:
-        print("args.final_epsilon is: ", args.final_epsilon)
+    if args.final_epsilon is not None:
         config['final_epsilon'] = args.final_epsilon
         
 
