@@ -48,10 +48,6 @@ class DQNAgent(Agent):
 
         if self.training_mode == False: 
             with torch.no_grad():
-                q_values = self.policy_net(torch_state)
-                print(f'Q-values: {q_values}')
-                q_max = q_values.argmax().item()
-                print(f'Q-max: {q_max}')
                 return self.policy_net(torch_state).argmax().item()
 
         if np.random.rand() < self.scheduler.get_epsilon() or self.iterations < self.config['initial_exploration']:

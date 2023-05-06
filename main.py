@@ -135,6 +135,7 @@ def run():
     # Game loop
     last_100_rewards = []
     mean_running_rewards = []
+    mean_evaluation_rewards = []
     for i in range(config['num_episodes']):
         episode_reward = 0
         
@@ -192,8 +193,15 @@ def run():
                     state = next_state
                 evaluation_rewards.append(episode_reward)
 
-            print('Evaluation rewards: ', evaluation_rewards, ' Mean: ', np.mean(evaluation_rewards))
+            mean_evaluation_reward = np.mean(evaluation_rewards)
+            mean_evaluation_rewards.append(mean_evaluation_reward)
+            print('Evaluation rewards: ', evaluation_rewards, ' Mean: ', mean_evaluation_reward)
             agent.eval(False)
+
+            plt.plot(range(len(mean_evaluation_rewards)), mean_evaluation_rewards)
+            plt.xlabel('Episodes')
+            plt.ylabel('Mean evaluation reward')
+            plt.savefig('results/mean_evaluation_rewards.png')
         
 
     env.close()
