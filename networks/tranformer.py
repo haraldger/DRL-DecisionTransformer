@@ -15,7 +15,7 @@ class AttentionHead(nn.Module):
             **kwargs
     ) -> None:
      
-        super().__init__(*args, **kwargs)
+        super(AttentionHead, self).__init__(*args, **kwargs)
 
         """
         Each attention head learns a linear projection of the keys,
@@ -84,7 +84,7 @@ class GPTBlock(nn.Module):
             **kwargs
     ) -> None:
         
-        super().__init__(*args, **kwargs)
+        super(GPTBlock, self).__init__(*args, **kwargs)
         self.attention_block = AttentionHead(num_heads, embedding_dim, masked=True, *args, **kwargs)
         self.ln1 = nn.LayerNorm(embedding_dim)
         
@@ -135,7 +135,7 @@ class DecisionTransformer(nn.Module):
             **kwargs
     ) -> None:
 
-        super().__init__(*args, **kwargs)
+        super(DecisionTransformer, self).__init__(*args, **kwargs)
 
         # For now, like gpt2, use a ff size of 4*embedding_dim
         ff_dim = 4*embedding_dim

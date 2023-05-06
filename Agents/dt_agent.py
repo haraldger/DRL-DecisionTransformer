@@ -52,7 +52,7 @@ class DTAgent(Agent):
             print_freq=5
     ):
         # Training offline with expert tracjectories
-        optimizer = optim.Adam(self.parameters(), lr=learning_rate)
+        optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
         for batch_idx, (states, actions, rewards, returns_to_go, timesteps, dones) in enumerate(train_loader):
