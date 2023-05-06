@@ -28,8 +28,10 @@ class DTAgent(Agent):
         
         self.act_dim = env.action_space.n
         self.max_ep_len = max_ep_len
+        self.config = config
+        self.max_ep_len = config["max_episode_length"]
 
-        super(DTAgent, env, config).__init__(env, config, *args, **kwargs)
+        super(DTAgent, self).__init__(env, config)
         self.model = DecisionTransformer(
             num_blocks,
             num_heads,
@@ -49,9 +51,10 @@ class DTAgent(Agent):
             self, 
             dataset, 
             batch_size,
-            learning_rate=0.01,
             print_freq=5
     ):
+        learning_rate = self.config["learning_rate"]
+
         # Training offline with expert tracjectories
         optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)

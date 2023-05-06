@@ -4,11 +4,12 @@ import torch
 from Agents.dt_agent import DTAgent
 from torch.utils.data import Dataset, DataLoader
 from utils.data_read import DataReader
+from utils.constants import load
 
-def test_forward_pass():
+def test_forward_pass(config):
     env = gym.make('ALE/MsPacman-v5')
 
-    dt_model = DTAgent(env)
+    dt_model = DTAgent(env, config)
 
     batch_size = 1
     seq_length = 2
@@ -27,9 +28,9 @@ def test_forward_pass():
     print("Next action prediction test: ", next_action)
 
 
-def test_traj():
+def test_traj(config):
     env = gym.make('ALE/MsPacman-v5')
-    dt_model = DTAgent(env)
+    dt_model = DTAgent(env, config)
 
     reward, seq_length = dt_model.run_evaluation_traj()
     
@@ -37,12 +38,12 @@ def test_traj():
     print("seq_length: ", seq_length)
 
 
-def test_train():
+def test_train(config):
     # Assumes that you have run the data collection test
     # And the file "test_traj_long.h5" exists
 
     env = gym.make('ALE/MsPacman-v5')
-    dt_model = DTAgent(env)
+    dt_model = DTAgent(env, config)
 
     reader = DataReader("test_traj_long.h5")
 
@@ -54,12 +55,13 @@ def test_train():
 
 
 def run():
+    config = load()
     print("Testing DT Agent forward pass.\n")
-    test_forward_pass()
+    test_forward_pass(config)
     print("\n")
     print("Testing DT Agent training.\n")
-    test_train()
+    test_train(config)
     print("\n")
     print("Testing a DT trajectory")
-    test_traj()
+    test_traj(config)
     print("\n")
