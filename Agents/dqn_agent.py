@@ -52,11 +52,11 @@ class DQNAgent(Agent):
                 return self.policy_net(torch_state).argmax().item()
 
         if np.random.rand() < self.scheduler.get_epsilon() or self.iterations < constants.INITIAL_EXPLORATION:
-            print("Exploring...")
             action = self.env.action_space.sample()
             return action
         else:
             with torch.no_grad():
+                print("Exploit")
                 return self.policy_net(torch_state).argmax().item()
     
     def train(self):
@@ -65,7 +65,6 @@ class DQNAgent(Agent):
         This function is called once per frame when training.
         """
         if self.iterations < constants.INITIAL_EXPLORATION:
-            print("Not training yet...")
             self.iterations += 1
             return
 
