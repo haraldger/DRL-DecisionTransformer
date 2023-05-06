@@ -6,3 +6,6 @@ class RandomAgent(Agent):
 
     def act(self, state):
         return self.env.action_space.sample()
+    
+    def train(self, end_of_episode=False):
+        pass
