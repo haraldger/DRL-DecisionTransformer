@@ -53,7 +53,7 @@ def main():
     if args.gamma:
         config['gamma'] = args.gamma
 
-    print("args.initial_epsilon is: ", args.initial_epsilon")
+    print("args.initial_epsilon is: ", args.initial_epsilon)
     print("check if args.initial_epsilon: ", args.initial_epsilon==True)
     if args.initial_epsilon is not None:
         print("args.initial_epsilon is: ", args.initial_epsilon)
