@@ -113,7 +113,6 @@ def run():
         
         if config['load'] != 'None':
             agent.load(config['load'])
-            save_name = config['load']      # If we are loading a model, we want to save it with the same name
         
         if not config['train']:
             agent.eval()
@@ -121,8 +120,6 @@ def run():
     elif config['agent'] == 'dt':
         agent = dt_agent.DTAgent(env)
 
-    if config['save'] and config['load'] == 'None':     # If we are training and not loading a model
-        save_name = time.strftime("%Y%m%d-%H%M%S")
     
 
 
@@ -163,6 +160,8 @@ def run():
             print('Episode: {}/{}, total iterations: {}. Mean running reward: {}'.format(i, config['num_episodes'], total_frames, np.mean(last_100_rewards)))
 
         if config['save'] and i % config['model_save_frequency'] == 0 and i != 0:
+            save_name = time.strftime("%Y%m%d-%H%M%S")
+            save_name += '_episodes_' + str(i)
             agent.save(save_name)
             # Save performance graph
             plt.plot(range(len(mean_running_rewards)), mean_running_rewards)
