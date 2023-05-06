@@ -9,7 +9,7 @@ from Agents.agent import Agent
 from networks.resnet import resnet34, resnet50 
 from networks.tranformer import DecisionTransformer
 import gym
-from utils.data_load_transform import image_transformation
+from utils.data_load_transform import image_transformation, image_transformation_no_norm
 from collections import deque
 
 class DTAgent(Agent):
@@ -62,10 +62,7 @@ class DTAgent(Agent):
         for epoch in range(num_epochs):
             for batch_idx, (states, actions, rewards, returns_to_go, timesteps, dones) in enumerate(train_loader):
                 optimizer.zero_grad()
-                print(timesteps)
-                print(timesteps.shape)
-                print(type(timesteps))
-                a_preds = self.model.forward(states, actions, returns_to_go, timesteps.to(torch.long))
+                a_preds = self.model.forward(states, actions.to(torch.long), returns_to_go, timesteps.to(torch.long))
                 one_hot_actions = F.one_hot(actions, num_classes=9)
                 loss = self.cross_entropy_loss(a_preds, one_hot_actions)
                 loss.backward()
@@ -94,7 +91,7 @@ class DTAgent(Agent):
         action = self.model.forward(state_seq, action_seq, return_to_go_seq, timestep_seq)
         return action
 
-    def run_evaluation_traj(self, target_reward=11000, traj_mem_size=1000, data_collection_obj=None):
+    def run_evaluation_traj(self, target_reward=11000, traj_mem_size=1000, data_collection_obj=None, data_transformation=None, float_state=False):
         """ 
         Run a trajectory, predicting actions with the model.
 
@@ -104,7 +101,8 @@ class DTAgent(Agent):
             - traj_mem_size - how many of the past iterations we pass into model 
                 - Another hyperparameter to tune
             - data_collection_obj - If not none, will collect trajectory information
-        
+            - data_transformation - If passed, will use this function to transform the data
+            - float_state - If true, will convert state to float
         Returns:
             - reward: final reward of the trajectory
             - 
@@ -121,8 +119,13 @@ class DTAgent(Agent):
             data_collection_obj.set_init_state(state)
 
         # Transform the state
-        state = torch.from_numpy(state).permute(2,0,1).unsqueeze(0).float()
-        state = image_transformation(state)
+        if float_state:
+            state = torch.from_numpy(state).permute(2,0,1).unsqueeze(0).float()
+        else:
+            state = torch.from_numpy(state).permute(2,0,1).unsqueeze(0)
+
+        if data_transformation is not None:
+            state = data_transformation(state)
 
         # Create start token (using nop action)
         # Note: use of deque will ensure that we keep the most recent elements (only traj_mem_size)
@@ -152,8 +155,13 @@ class DTAgent(Agent):
                 data_collection_obj.store_next_step(next_action, reward, next_state, done)
 
             # Transform next state
-            next_state = torch.from_numpy(next_state).permute(2,0,1).unsqueeze(0).float()
-            next_state = image_transformation(next_state)
+            if float_state:
+                state = torch.from_numpy(state).permute(2,0,1).unsqueeze(0).float()
+            else:
+                state = torch.from_numpy(state).permute(2,0,1).unsqueeze(0)
+
+            if data_transformation is not None:
+                state = data_transformation(state)
 
             # update sequences
             return_to_go_seq.append(return_to_go_seq[-1] - reward)
