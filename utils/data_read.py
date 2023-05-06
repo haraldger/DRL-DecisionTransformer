@@ -101,7 +101,7 @@ class DataReader(Dataset):
         actions = torch.tensor([t[1] for t in traj_pairs]).short().unsqueeze(-1)
         rewards = torch.tensor([t[2] for t in traj_pairs]).short().unsqueeze(-1)
         rewards_to_go = torch.tensor([t[4] for t in traj_pairs]).float().unsqueeze(-1)
-        timesteps = torch.tensor([t[5] for t in traj_pairs]).float().unsqueeze(-1)
+        timesteps = torch.tensor([t[5] for t in traj_pairs]).int().unsqueeze(-1)
         dones = torch.tensor([t[6] for t in traj_pairs]).float().unsqueeze(-1)        
         
         return states, actions, rewards, rewards_to_go, timesteps, dones

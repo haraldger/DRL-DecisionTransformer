@@ -5,8 +5,10 @@ import gym
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
+import os
 from utils import experience_replay, epsilon_scheduler, constants
 from Agents import dt_agent, random_agent, dqn_agent
+from utils.data_collection import DataCollector
 
 config = dict()
 agent = None
@@ -25,8 +27,10 @@ def main():
     parser.add_argument('-n', '--num_episodes', type=int, default=100000, help='Number of episodes to train')
     parser.add_argument('-v', '--verbose', action='store_true', help='Verbose mode')
     parser.add_argument('-pf', '--print_frequency', type=int, help='Frequency in episodes to print progress')
+    parser.add_argument('-df', '--dump_frequency', type=int, default=None, help="How many episodes between writing trajectories to outfile")
+    parser.add_argument('-o', '--output', type=str, default="random_trajectories.h5", help="Output trajectory path for data collection")
     parser.add_argument('--evaluation_frequency', type=int, help='Frequency in episodes to evaluate model')
-    
+
     parser.add_argument('-lr', '--learning_rate', type=float, help='Learning rate')
     parser.add_argument('-g', '--gamma', type=float, help='Discount factor')
     parser.add_argument('-l', '--load', type=str, default="None", help='Load model. Provide name of model file, without extension or folder')
@@ -46,6 +50,8 @@ def main():
     config['num_episodes'] = args.num_episodes
     config['verbose'] = args.verbose
     config['load'] = args.load
+    config['dump_frequency'] = args.dump_frequency
+    config['output'] = args.output
 
     if args.print_frequency is not None:
         config['print_frequency'] = args.print_frequency
@@ -129,8 +135,12 @@ def run():
     elif config['agent'] == 'dt':
         agent = dt_agent.DTAgent(env, config)
 
-    
 
+    # Initalize data collector
+    if config['dump_frequency'] is not None:
+        if os.path.isfile(config['output']):
+            sys.exit("Ouput file path already exists.")
+        dc = DataCollector(config['output'], episodes_per_write=config['dump_frequency'])
 
     # Game loop
     last_100_rewards = []
@@ -143,6 +153,9 @@ def run():
         # Skip inactive frames
         for _ in range(inactive_frames):
             state, reward, done, info, _ = env.step(0)
+
+        if config['dump_frequency'] is not None:
+            dc.set_init_state(state)
 
         while not done:     # Run episode until done
             action = agent.act(state)
@@ -162,6 +175,9 @@ def run():
 
             state = cumulative_state
 
+            if config['dump_frequency'] is not None:
+                dc.store_next_step(action, reward, next_state, done)
+                
             if config['train']:
                 agent.train()
 
@@ -210,7 +226,9 @@ def run():
             plt.xlabel('Episodes')
             plt.ylabel('Mean evaluation reward')
             plt.savefig('results/mean_evaluation_rewards.png')
-        
+    
+    if config['dump_frequency'] is not None:
+        dc.dump_write_buffer()
 
     env.close()
 
