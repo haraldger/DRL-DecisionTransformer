@@ -158,7 +158,7 @@ def run():
         if config['verbose'] and i % config['print_frequency'] == 0:
             print('Episode: {}/{}, total iterations: {}. Mean running reward: {}'.format(i, config['num_episodes'], total_frames, np.mean(last_100_rewards)))
 
-        if config['save'] and i % config['model_save_frequency'] == 0:
+        if config['save'] and i % config['model_save_frequency'] == 0 and i != 0:
             agent.save(save_name)
             # Save performance graph
             plt.plot(range(len(mean_running_rewards)), mean_running_rewards)
