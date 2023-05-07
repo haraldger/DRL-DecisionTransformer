@@ -41,22 +41,41 @@ class DQNAgent(Agent):
         else:
             self.scheduler = scheduler
 
+        
+        # Performance monitoring
+
+        self.last_100_q_values = []
+
 
     def act(self, state):
-        # Reshape state to (1, 3, 210, 160) PyTorch tensor
-        torch_state = torch.tensor(state, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0).to(self.device)
-
+        """
+        Choose an action to take given the current state.
+        This function is called once per (stacked) frame when training.
+        """
         if self.training_mode == False: 
-            with torch.no_grad():
-                return self.policy_net(torch_state).argmax().item()
+            return self.exploit(state)
 
         if np.random.rand() < self.scheduler.get_epsilon() or self.iterations < self.config['initial_exploration']:
             action = self.env.action_space.sample()
             return action
         else:
-            with torch.no_grad():
-                return self.policy_net(torch_state).argmax().item()
+            return self.exploit(state)
     
+    def exploit(self, state):
+        # Reshape state to (1, 3, 210, 160) PyTorch tensor
+        torch_state = torch.tensor(state, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0).to(self.device)
+
+        with torch.no_grad():
+            out = self.policy_net(torch_state)  # Forward pass
+
+            max_q = out.max().item()    # Performance monitoring
+            self.last_100_q_values.append(max_q)
+            if len(self.last_100_q_values) > 100:
+                self.last_100_q_values.pop(0)
+
+            action = out.argmax().item()
+            return action
+
     def train(self):
         """
         Perform one iteration of training.
