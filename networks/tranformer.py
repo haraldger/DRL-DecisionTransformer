@@ -138,6 +138,7 @@ class DecisionTransformer(nn.Module):
         super(DecisionTransformer, self).__init__(*args, **kwargs)
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print(self.device)
 
         # For now, like gpt2, use a ff size of 4*embedding_dim
         ff_dim = 4*embedding_dim
