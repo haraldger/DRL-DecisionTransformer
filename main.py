@@ -192,10 +192,10 @@ def run():
         state, _ = env.reset()
         if config['verbose'] and i % config['print_frequency'] == 0:
             print('Episode: {}/{}, total iterations: {}. Reward: {}. median running reward: {}'.format(i, config['num_episodes'], total_frames, episode_reward, np.median(last_100_rewards)))
-            if config['agent'] == 'dqn' and i != 0:
+            if config['agent'] == 'dqn' and i > config['initial_exploration']:
                 print('Epsilon: {}. Median Q-value: {}'.format(agent.epsilon(), np.median(agent.last_100_q_values)))
 
-        if config['save'] and i % config['model_save_frequency'] == 0 and i > config['initial_exploration']:
+        if config['save'] and i % config['model_save_frequency'] == 0 and i != 0:
             save_name = time.strftime("%Y%m%d-%H%M%S")
             save_name += '_episodes_' + str(i)
             agent.save(save_name)
