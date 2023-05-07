@@ -47,6 +47,7 @@ class DTAgent(Agent):
             *args,
             **kwargs           
         )
+        print(sum(p.numel() for p in model.parameters() if p.requires_grad))
         
         self.model = self.model.to(self.device)
         print(torch.cuda.memory_reserved())
