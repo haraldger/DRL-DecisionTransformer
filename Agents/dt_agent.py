@@ -50,7 +50,6 @@ class DTAgent(Agent):
 
     def cross_entropy_loss(self, action_preds, actions):
         # compute negative log-likelihood loss
-        print(action_preds.shape, actions.shape)
         return F.cross_entropy(action_preds, actions)
     
 

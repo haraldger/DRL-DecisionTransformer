@@ -157,13 +157,11 @@ class DecisionTransformer(nn.Module):
         self.embed_timestep = nn.Embedding(max_ep_len, embedding_dim)
         self.embed_action = nn.Embedding(act_dim, embedding_dim)
         self.embed_return = nn.Linear(1, embedding_dim)
-        # self.embed_state = resnet50(in_channels=img_channels)
-        print(img_channels, embedding_dim)
         self.embed_state = Bitchnet(in_channels=img_channels, output_dim=embedding_dim)
         self.embed_ln = nn.LayerNorm(embedding_dim)
 
         # input shape to decoder block:
-        # (batch, sequencelength, embeddingdim)
+        # (batch, sequence length, embedding dim)
 
         # GPT blocks
         self.gpt_blocks = nn.ModuleList([
@@ -176,7 +174,7 @@ class DecisionTransformer(nn.Module):
             nn.Linear(embedding_dim, ff_dim),
             nn.ReLU(),
             nn.Linear(ff_dim, self.act_dim),
-            nn.Softmax()
+            nn.Softmax(dim=-1)
         )
 
     def forward(
@@ -186,8 +184,7 @@ class DecisionTransformer(nn.Module):
             returns_to_go, 
             timesteps
     ):
-        # NOTE: actions should be in one-hot rep based on act_dim
-
+        # Get shapes
         batch_size, seq_length, channels, y, x = states.shape
 
         # Embed each modality with a different head
