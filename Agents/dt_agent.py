@@ -30,7 +30,6 @@ class DTAgent(Agent):
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
-        
         self.act_dim = env.action_space.n
         self.max_ep_len = max_ep_len
         self.config = config
@@ -54,6 +53,7 @@ class DTAgent(Agent):
         # compute negative log-likelihood loss
         return F.cross_entropy(action_preds, actions)
     
+
     def train(
             self, 
             dataset, 
@@ -61,6 +61,8 @@ class DTAgent(Agent):
             num_epochs,
             print_freq=5
     ):
+        self.model.train()
+
         learning_rate = self.config["learning_rate"]
 
         # Training offline with expert tracjectories
@@ -110,13 +112,13 @@ class DTAgent(Agent):
         return_to_go_seq = return_to_go_seq.to(self.device)
         timestep_seq = timestep_seq.to(self.device)
 
-        action = self.model.forward(state_seq, action_seq, return_to_go_seq, timestep_seq)
-        print(torch.cuda.memory_reserved())
-        del state_seq, action_seq, return_to_go_seq, timestep_seq
-        torch.cuda.empty_cache()
-        print(torch.cuda.memory_reserved())
+        self.model.eval()
+        with torch.no_grad():
+            action = self.model.forward(state_seq, action_seq, return_to_go_seq, timestep_seq)
 
+        del state_seq, action_seq, return_to_go_seq, timestep_seq
         return action
+
 
     def run_evaluation_traj(self, target_reward=11000, traj_mem_size=1000, data_collection_obj=None, data_transformation=None, float_state=False):
         """ 
@@ -138,6 +140,8 @@ class DTAgent(Agent):
         state, _ = self.env.reset()
         y, x, z = state.shape
         inactive_frams = 65
+
+        self.model.eval()
 
         for _ in range(inactive_frams):
             state, reward, done, info, _ = self.env.step(0)
@@ -173,7 +177,9 @@ class DTAgent(Agent):
             action_seq_torch = torch.tensor(action_seq).int().reshape(1, seq_length, 1)
             timestep_seq_torch = torch.tensor(timestep_seq).int().reshape(1, seq_length, 1)
 
-            next_action_pred = self.predict_next_action(state_seq_torch, action_seq_torch, return_to_go_seq_torch, timestep_seq_torch)
+            with torch.no_grad():
+                next_action_pred = self.predict_next_action(state_seq_torch, action_seq_torch, return_to_go_seq_torch, timestep_seq_torch)
+            
             next_action = torch.argmax(next_action_pred)
             
             next_state, reward, done, info, _ = self.env.step(next_action)
