@@ -36,6 +36,7 @@ class DTAgent(Agent):
         self.max_ep_len = config["max_episode_length"]
 
         super(DTAgent, self).__init__(env, config)
+        print("Checkpoint C")
         print(f"Before transformer: {torch.cuda.memory_allocated(0)}")
         self.model = DecisionTransformer(
             num_blocks,
