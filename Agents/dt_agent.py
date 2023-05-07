@@ -47,9 +47,9 @@ class DTAgent(Agent):
             *args,
             **kwargs           
         )
-        print(torch.cuda.memory_reserved())
         
-        model = model.to(self.device)
+        self.model = self.model.to(self.device)
+        print(torch.cuda.memory_reserved())
 
 
     def cross_entropy_loss(self, action_preds, actions):
