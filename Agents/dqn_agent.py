@@ -70,7 +70,7 @@ class DQNAgent(Agent):
             state_sample, action_sample, next_state_sample, reward_sample, done_sample = self.replay_buffer.sample_tensor_batch(self.config['batch_size'], self.device)
             
             target_q_values = self.target_net(next_state_sample).max(1)[0].detach().view(-1, 1)
-            targets = reward_sample + self.gamma * target_q_values * (1 - done_sample.long())
+            targets = (reward_sample + self.gamma * target_q_values) * (1 - done_sample.long()) + (done_sample.long() * -100)
 
             preds = self.policy_net(state_sample).gather(1, action_sample)
 
