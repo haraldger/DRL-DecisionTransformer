@@ -116,8 +116,8 @@ class DTAgent(Agent):
         action = self.model.forward(state_seq, action_seq, return_to_go_seq, timestep_seq)
         print(torch.cuda.memory_reserved())
         del state_seq, action_seq, return_to_go_seq, timestep_seq
-        print(torch.cuda.memory_reserved())
         torch.cuda.empty_cache()
+        print(torch.cuda.memory_reserved())
 
         return action
 
