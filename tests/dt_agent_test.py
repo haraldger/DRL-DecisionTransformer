@@ -5,7 +5,7 @@ from Agents.dt_agent import DTAgent
 from torch.utils.data import Dataset, DataLoader
 from utils.data_read import DataReader
 from utils.constants import load
-from utils.data_load_transform import image_transformation, image_transformation_no_norm
+from utils.data_load_transform import image_transformation, image_transformation_no_norm, image_transformation_just_norm
 
 def test_forward_pass(config):
     env = gym.make('ALE/MsPacman-v5')
@@ -16,7 +16,7 @@ def test_forward_pass(config):
     seq_length = 2
 
     # expects state to be float normalized form
-    state_seq = torch.rand(batch_size, seq_length, 1, 210, 160).float()
+    state_seq = torch.rand(batch_size, seq_length, 3, 210, 160).float()
     action_seq = torch.randint(high=9, size=(batch_size, seq_length, 1))
     ret_to_go_seq = torch.tensor([10000,9998]).float().reshape(batch_size, seq_length, 1)
     timestep_seq = torch.tensor([0,1]).reshape(batch_size, seq_length, 1)
@@ -46,7 +46,8 @@ def test_train(config):
     env = gym.make('ALE/MsPacman-v5')
     dt_model = DTAgent(env, config)
 
-    reader = DataReader("test_traj_long.h5", transform=image_transformation, float_state=True)
+    # reader = DataReader("test_traj_long.h5", transform=image_transformation, float_state=True)
+    reader = DataReader("test_traj_long.h5", transform=image_transformation_just_norm, float_state=True)
 
     dt_model.train(
         dataset=reader,

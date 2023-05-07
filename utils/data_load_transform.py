@@ -17,3 +17,7 @@ image_transformation = torch.nn.Sequential(
 image_transformation_no_norm = torch.nn.Sequential(
     transforms.Grayscale(),
 )
+
+image_transformation_just_norm = torch.nn.Sequential(
+    transforms.Normalize(0, 255)
+)

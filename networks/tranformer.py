@@ -28,7 +28,7 @@ class AttentionHead(nn.Module):
 
         # Weights for keys, queries and values, in a batch
         self.w_attention = nn.Linear(embedding_dim, num_heads * 3 * embedding_dim)
-        print(f'Numel of w_attention: {self.w_attention.weight.numel()}')
+        # print(f'Numel of w_attention: {self.w_attention.weight.numel()}')
         self.softmax = nn.Softmax(dim=-1)
         self.w_output = nn.Linear(num_heads * embedding_dim, embedding_dim)
 
@@ -89,9 +89,9 @@ class GPTBlock(nn.Module):
         
         super(GPTBlock, self).__init__(*args, **kwargs)
         self.attention_block = AttentionHead(num_heads, embedding_dim, masked=True, *args, **kwargs)
-        print(f'Attention block: {self.attention_block.w_attention.weight.numel()}')
+        # print(f'Attention block: {self.attention_block.w_attention.weight.numel()}')
         self.ln1 = nn.LayerNorm(embedding_dim)
-        print(f'Layer norm: {self.ln1.weight.numel()}')
+        # print(f'Layer norm: {self.ln1.weight.numel()}')
     
 
         # Feed forward network
@@ -101,10 +101,10 @@ class GPTBlock(nn.Module):
             nn.Linear(ff_dim, embedding_dim),
             nn.Dropout(dropout)
         )
-        print(f'Feedforward: {self.feedforward[0].weight.numel() + self.feedforward[2].weight.numel()}')
+        # print(f'Feedforward: {self.feedforward[0].weight.numel() + self.feedforward[2].weight.numel()}')
 
         self.ln2 = nn.LayerNorm(embedding_dim)
-        print(f'Layer norm: {self.ln2.weight.numel()}')
+        # print(f'Layer norm: {self.ln2.weight.numel()}')
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
@@ -158,7 +158,9 @@ class DecisionTransformer(nn.Module):
         self.embed_action = nn.Embedding(act_dim, embedding_dim)
         self.embed_return = nn.Linear(1, embedding_dim)
         # self.embed_state = resnet50(in_channels=img_channels)
+        
         self.embed_state = resnet50(pretrained=False)
+        self.embed_state.fc = nn.Linear(2048, embedding_dim)
 
         self.embed_ln = nn.LayerNorm(embedding_dim)
 
@@ -205,7 +207,8 @@ class DecisionTransformer(nn.Module):
             with record_function("state_embedding"):
                 # merge seq_length and batch_size dims for resenet
                 state_merged = states.reshape(-1, channels, y, x)
-                state_embeddings = self.embed_state(state_merged).reshape(batch_size, seq_length, self.embedding_dim)
+                state_embeddings = self.embed_state(state_merged)
+                state_embeddings = state_embeddings.reshape(batch_size, seq_length, self.embedding_dim)
 
         print("state embeddings: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
 
