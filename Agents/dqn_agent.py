@@ -14,8 +14,15 @@ class DQNAgent(Agent):
 
         # Initialize networks
 
-        self.target_net = DQN_vanilla().to(self.device)
-        self.policy_net = DQN_vanilla().to(self.device)
+        if self.config['dqn_network'] == 'vanilla':
+            self.target_net = DQN_vanilla().to(self.device)
+            self.policy_net = DQN_vanilla().to(self.device)
+        elif self.config['dqn_network'] == 'large':
+            self.target_net = DQN().to(self.device)
+            self.policy_net = DQN().to(self.device)
+        else:   
+            raise ValueError("Invalid DQN network type. Valid types are 'vanilla' and 'large'.")
+        
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net.eval()
 
