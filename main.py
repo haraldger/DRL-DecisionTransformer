@@ -198,6 +198,7 @@ def run():
             save_name += '_episodes_' + str(i)
             agent.save(save_name)
             # Save performance graph
+            plt.figure()
             plt.plot(range(len(median_running_rewards)), median_running_rewards)
             plt.xlabel('Episodes')
             plt.ylabel('median running reward')
@@ -222,6 +223,7 @@ def run():
             print('Evaluation rewards: ', evaluation_rewards, ' median: ', median_evaluation_reward)
             agent.eval(False)
 
+            plt.figure()
             plt.plot(range(len(median_evaluation_rewards)), median_evaluation_rewards)
             plt.xlabel('Episodes')
             plt.ylabel('median evaluation reward')
