@@ -27,7 +27,7 @@ class DTAgent(Agent):
     ) -> None:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(self.device)
-        print("Start: %fGB"%(torch.cuda.memory_allocated(0)/1024/1024/1024))
+        
         
         self.act_dim = env.action_space.n
         self.max_ep_len = max_ep_len
@@ -35,7 +35,7 @@ class DTAgent(Agent):
         self.max_ep_len = config["max_episode_length"]
 
         super(DTAgent, self).__init__(env, config)
-        print("Before transformer: %fGB"%(torch.cuda.memory_allocated(0)/1024/1024/1024))
+        print(f"Before transformer: {torch.cuda.memory_allocated(0)}")
         self.model = DecisionTransformer(
             num_blocks,
             num_heads,
@@ -46,7 +46,7 @@ class DTAgent(Agent):
             *args,
             **kwargs           
         ).to(self.device)
-        print("After transformer: %fGB"%(torch.cuda.memory_allocated(0)/1024/1024/1024))
+        print(f"After transformer: {torch.cuda.memory_allocated(0)}")
 
 
     def cross_entropy_loss(self, action_preds, actions):
@@ -87,6 +87,7 @@ class DTAgent(Agent):
                     epoch+1, num_epochs, batch_idx+1, len(train_loader), loss.item()))
 
                 del states, actions, returns_to_go, timesteps, a_preds, one_hot_actions, loss
+                print(f'Batch deleted: {torch.cuda.memory_allocated(0)}')
             
 
     def predict_next_action(self, state_seq, action_seq, return_to_go_seq, timestep_seq):
@@ -104,12 +105,16 @@ class DTAgent(Agent):
         Precondition:
             - If this is the first step in evaluation, assumed that a start token has already been made
         """        
+        print(f'Before predict: {torch.cuda.memory_allocated(0)}')
         state_seq = state_seq.to(self.device)
         action_seq = action_seq.to(self.device)
         return_to_go_seq = return_to_go_seq.to(self.device)
         timestep_seq = timestep_seq.to(self.device)
+        print(f'After predict: {torch.cuda.memory_allocated(0)}')
 
         action = self.model.forward(state_seq, action_seq, return_to_go_seq, timestep_seq)
+        del state_seq, action_seq, return_to_go_seq, timestep_seq
+        print(f'After delete: {torch.cuda.memory_allocated(0)}')
         return action
 
     def run_evaluation_traj(self, target_reward=11000, traj_mem_size=1000, data_collection_obj=None, data_transformation=None, float_state=False):

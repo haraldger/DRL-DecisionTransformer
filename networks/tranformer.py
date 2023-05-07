@@ -139,7 +139,7 @@ class DecisionTransformer(nn.Module):
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(self.device)
-        print("Start torch.cuda.memory_allocated: %fGB"%(torch.cuda.memory_allocated(0)/1024/1024/1024))
+        print(f'Start: {torch.cuda.memory_allocated(0)}')
 
         # For now, like gpt2, use a ff size of 4*embedding_dim
         ff_dim = 4*embedding_dim
@@ -151,9 +151,9 @@ class DecisionTransformer(nn.Module):
         self.embed_timestep = nn.Embedding(max_ep_len, embedding_dim)
         self.embed_action = nn.Embedding(act_dim, embedding_dim)
         self.embed_return = nn.Linear(1, embedding_dim)
-        print("Before resnet: %fGB"%(torch.cuda.memory_allocated(0)/1024/1024/1024))
+        print(f'Before resnet: {torch.cuda.memory_allocated(0)}')
         self.embed_state = resnet50(in_channels=img_channels).to(device=self.device, dtype=torch.float32)
-        print("After resnet: %fGB"%(torch.cuda.memory_allocated(0)/1024/1024/1024))
+        print(f'After resnet: {torch.cuda.memory_allocated(0)}')
 
 
         self.embed_ln = nn.LayerNorm(embedding_dim)
