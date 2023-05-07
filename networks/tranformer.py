@@ -86,8 +86,10 @@ class GPTBlock(nn.Module):
         
         super(GPTBlock, self).__init__(*args, **kwargs)
         self.attention_block = AttentionHead(num_heads, embedding_dim, masked=True, *args, **kwargs)
+        print(f'Numel attention_block: {sum(p.numel() for p in self.attention_block.parameters() if p.requires_grad)}'
         self.ln1 = nn.LayerNorm(embedding_dim)
-        
+        print(f'Numel ln1: {sum(p.numel() for p in self.ln1.parameters() if p.requires_grad)}')
+
         # Feed forward network
         self.feedforward = nn.Sequential(
             nn.Linear(embedding_dim, ff_dim),
@@ -95,8 +97,10 @@ class GPTBlock(nn.Module):
             nn.Linear(ff_dim, embedding_dim),
             nn.Dropout(dropout)
         )
+        print(f'Numel feedforward: {sum(p.numel() for p in self.feedforward.parameters() if p.requires_grad)}')
 
         self.ln2 = nn.LayerNorm(embedding_dim)
+        print(f'Numel ln2: {sum(p.numel() for p in self.ln2.parameters() if p.requires_grad)}')
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
