@@ -21,7 +21,7 @@ class DTAgent(Agent):
             config,
             num_blocks=8, 
             num_heads=8, 
-            embedding_dim=768, 
+            embedding_dim=384, 
             dropout=0.1, 
             max_ep_len=10000, 
             *args,
