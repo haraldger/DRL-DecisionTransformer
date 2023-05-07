@@ -116,6 +116,9 @@ class DQNAgent(Agent):
         else:
             self.policy_net.eval()
 
+    def epsilon(self):
+        return self.scheduler.get_epsilon()
+
     def save(self, name):
         torch.save(self.policy_net.state_dict(), "results/" + name + ".pt")
 
