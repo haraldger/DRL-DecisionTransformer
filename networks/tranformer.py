@@ -25,9 +25,8 @@ class AttentionHead(nn.Module):
         self.embedding_dim = embedding_dim
 
         # Weights for keys, queries and values, in a batch
-        print(torch.cuda.memory_reserved())
         self.w_attention = nn.Linear(embedding_dim, num_heads * 3 * embedding_dim)
-        print(torch.cuda.memory_reserved())
+        print(f'Numel of w_attention: {self.w_attention.weight.numel()}')
         self.softmax = nn.Softmax(dim=-1)
         self.w_output = nn.Linear(num_heads * embedding_dim, embedding_dim)
 
