@@ -147,7 +147,7 @@ class DecisionTransformer(nn.Module):
         self.embed_timestep = nn.Embedding(max_ep_len, embedding_dim)
         self.embed_action = nn.Embedding(act_dim, embedding_dim)
         self.embed_return = nn.Linear(1, embedding_dim)
-        self.embed_state = resnet50(in_channels=img_channels)
+        self.embed_state = resnet50(in_channels=img_channels).to(torch.float32)
 
         self.embed_ln = nn.LayerNorm(embedding_dim)
 

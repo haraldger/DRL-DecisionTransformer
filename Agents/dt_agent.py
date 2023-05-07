@@ -25,6 +25,7 @@ class DTAgent(Agent):
             *args,
             **kwargs
     ) -> None:
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         self.act_dim = env.action_space.n
         self.max_ep_len = max_ep_len
@@ -41,7 +42,7 @@ class DTAgent(Agent):
             act_dim=self.act_dim,
             *args,
             **kwargs           
-        )
+        ).to(self.device)
 
     def cross_entropy_loss(self, action_preds, actions):
         # compute negative log-likelihood loss
@@ -61,6 +62,12 @@ class DTAgent(Agent):
         train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
         for epoch in range(num_epochs):
             for batch_idx, (states, actions, rewards, returns_to_go, timesteps, dones) in enumerate(train_loader):
+                
+                states = states.to(self.device)
+                actions = actions.to(self.device)
+                returns_to_go = returns_to_go.to(self.device)
+                timesteps = timesteps.to(self.device)
+
                 optimizer.zero_grad()
                 a_preds = self.model.forward(states, actions.to(torch.long), returns_to_go, timesteps.to(torch.long))
                 one_hot_actions = F.one_hot(actions, num_classes=9)
@@ -88,6 +95,11 @@ class DTAgent(Agent):
         Precondition:
             - If this is the first step in evaluation, assumed that a start token has already been made
         """        
+        state_seq = state_seq.to(self.device)
+        action_seq = action_seq.to(self.device)
+        return_to_go_seq = return_to_go_seq.to(self.device)
+        timestep_seq = timestep_seq.to(self.device)
+
         action = self.model.forward(state_seq, action_seq, return_to_go_seq, timestep_seq)
         return action
 

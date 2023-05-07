@@ -46,7 +46,7 @@ def test_train(config):
     env = gym.make('ALE/MsPacman-v5')
     dt_model = DTAgent(env, config)
 
-    reader = DataReader("test_traj_long.h5", transform=image_transformation_no_norm, float_state=False)
+    reader = DataReader("test_traj_long.h5", transform=image_transformation, float_state=True)
 
     dt_model.train(
         dataset=reader,
