@@ -4,7 +4,7 @@ import torch
 from torch import nn 
 from Agents.agent import Agent
 from networks.resnet import resnet18, resnet34, resnet50, resnet101
-from torch.profiler import profile, record_function, ProfilerActivity
+from torch.autograd.profiler import profile, record_function
 
 class AttentionHead(nn.Module):
     def __init__(
@@ -153,7 +153,7 @@ class DecisionTransformer(nn.Module):
         self.act_dim = act_dim
 
         # Embeddings and Encodings
-        with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], profile_memory=True, record_shapes=True) as prof:
+        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
             with record_function("embeddings"):
                 self.embed_timestep = nn.Embedding(max_ep_len, embedding_dim)
                 self.embed_action = nn.Embedding(act_dim, embedding_dim)
