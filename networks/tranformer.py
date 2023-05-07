@@ -86,8 +86,11 @@ class GPTBlock(nn.Module):
     ) -> None:
         
         super(GPTBlock, self).__init__(*args, **kwargs)
+        print(f'GPT block initial: {torch.cuda.memory_reserved()}')
         self.attention_block = AttentionHead(num_heads, embedding_dim, masked=True, *args, **kwargs)
+        print(f'Attention block: {torch.cuda.memory_reserved()}')
         self.ln1 = nn.LayerNorm(embedding_dim)
+        print(f'Layer norm: {torch.cuda.memory_reserved()}')
     
 
         # Feed forward network
@@ -97,8 +100,10 @@ class GPTBlock(nn.Module):
             nn.Linear(ff_dim, embedding_dim),
             nn.Dropout(dropout)
         )
+        print(f'Feedforward: {torch.cuda.memory_reserved()}')
 
         self.ln2 = nn.LayerNorm(embedding_dim)
+        print(f'Layer norm: {torch.cuda.memory_reserved()}')
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
