@@ -47,7 +47,7 @@ def test_train(config):
     dt_model = DTAgent(env, config)
 
     # reader = DataReader("test_traj_long.h5", transform=image_transformation, float_state=True)
-    reader = DataReader("test_traj_long.h5", transform=image_transformation_just_norm, float_state=True)
+    reader = DataReader("test_traj_long.h5", transform=image_transformation_just_norm, float_state=True, k_last_iters=32)
 
     dt_model.train(
         dataset=reader,
