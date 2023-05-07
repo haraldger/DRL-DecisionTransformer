@@ -28,7 +28,6 @@ class DTAgent(Agent):
         super(DTAgent, self).__init__(env, config)
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        print(self.device)
         
         
         self.act_dim = env.action_space.n
@@ -108,7 +107,7 @@ class DTAgent(Agent):
 
         action = self.model.forward(state_seq, action_seq, return_to_go_seq, timestep_seq)
         del state_seq, action_seq, return_to_go_seq, timestep_seq
-        
+
         return action
 
     def run_evaluation_traj(self, target_reward=11000, traj_mem_size=1000, data_collection_obj=None, data_transformation=None, float_state=False):
