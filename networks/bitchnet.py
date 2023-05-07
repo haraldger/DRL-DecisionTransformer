@@ -60,7 +60,7 @@ class Bitchnet(nn.Module):
         self.layer1 = Bottleneck(64, 64)
         self.layer2 = Bottleneck(64, 128)
         self.layer3 = Bottleneck(128, 256)
-        self.layer4 = Bottleneck(256, 256)
+        # self.layer4 = Bottleneck(256, 256)
 
         # Linear output layer
         self.flatten = nn.Flatten()
@@ -82,10 +82,10 @@ class Bitchnet(nn.Module):
         c4 = self.layer3(c3)
         c4 = self.maxpool_2(c4)
 
-        c5 = self.layer4(c4)
+        # c5 = self.layer4(c4)
 
         # Linear output layer
-        out = self.flatten(c5)
+        out = self.flatten(c4)
         out = self.linear(out)
 
         # Return learned encoding
