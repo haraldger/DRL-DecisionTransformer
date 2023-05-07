@@ -25,7 +25,9 @@ class AttentionHead(nn.Module):
         self.embedding_dim = embedding_dim
 
         # Weights for keys, queries and values, in a batch
+        print(torch.cuda.memory_reserved())
         self.w_attention = nn.Linear(embedding_dim, num_heads * 3 * embedding_dim)
+        print(torch.cuda.memory_reserved())
         self.softmax = nn.Softmax(dim=-1)
         self.w_output = nn.Linear(num_heads * embedding_dim, embedding_dim)
 
@@ -86,9 +88,8 @@ class GPTBlock(nn.Module):
         
         super(GPTBlock, self).__init__(*args, **kwargs)
         self.attention_block = AttentionHead(num_heads, embedding_dim, masked=True, *args, **kwargs)
-        print(f'Numel attention_block: {sum(p.numel() for p in self.attention_block.parameters() if p.requires_grad)}')
         self.ln1 = nn.LayerNorm(embedding_dim)
-        print(f'Numel ln1: {sum(p.numel() for p in self.ln1.parameters() if p.requires_grad)}')
+    
 
         # Feed forward network
         self.feedforward = nn.Sequential(
@@ -97,10 +98,8 @@ class GPTBlock(nn.Module):
             nn.Linear(ff_dim, embedding_dim),
             nn.Dropout(dropout)
         )
-        print(f'Numel feedforward: {sum(p.numel() for p in self.feedforward.parameters() if p.requires_grad)}')
 
         self.ln2 = nn.LayerNorm(embedding_dim)
-        print(f'Numel ln2: {sum(p.numel() for p in self.ln2.parameters() if p.requires_grad)}')
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
@@ -151,17 +150,12 @@ class DecisionTransformer(nn.Module):
 
         # Embeddings and Encodings
         self.embed_timestep = nn.Embedding(max_ep_len, embedding_dim)
-        print(f'Numel timestep: {sum(p.numel() for p in self.embed_timestep.parameters() if p.requires_grad)}')
         self.embed_action = nn.Embedding(act_dim, embedding_dim)
-        print(f'Numel action: {sum(p.numel() for p in self.embed_action.parameters() if p.requires_grad)}')
         self.embed_return = nn.Linear(1, embedding_dim)
-        print(f'Numel return: {sum(p.numel() for p in self.embed_return.parameters() if p.requires_grad)}')
         self.embed_state = resnet50(in_channels=img_channels)
-        print(f'Numel Resnet: {sum(p.numel() for p in self.embed_state.parameters() if p.requires_grad)}')
 
 
         self.embed_ln = nn.LayerNorm(embedding_dim)
-        print(f'Numel embed_ln: {sum(p.numel() for p in self.embed_ln.parameters() if p.requires_grad)}')
 
 
         # input shape to decoder block:
@@ -172,8 +166,6 @@ class DecisionTransformer(nn.Module):
             GPTBlock(num_heads, embedding_dim, ff_dim, dropout, *args, **kwargs)
             for _ in range(num_blocks)
         ])
-        print(f'Numel GPT blocks: {sum(p.numel() for p in self.gpt_blocks.parameters() if p.requires_grad)}')
-        print(f'Numel each GPT block: {sum(p.numel() for p in self.gpt_blocks[0].parameters() if p.requires_grad)}')
 
         # output prediction layers
         # self.predict_state = nn.Linear(embedding_dim, self.state_dim)
@@ -189,7 +181,6 @@ class DecisionTransformer(nn.Module):
             nn.Linear(ff_dim, self.act_dim),
             nn.Softmax()
         )
-        print(f'Numel predict_action: {sum(p.numel() for p in self.predict_action.parameters() if p.requires_grad)}')
 
 
     def forward(

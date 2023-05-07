@@ -18,8 +18,8 @@ class DTAgent(Agent):
             self,
             env,
             config,
-            num_blocks=12, 
-            num_heads=12, 
+            num_blocks=6, 
+            num_heads=8, 
             embedding_dim=768, 
             dropout=0.1, 
             max_ep_len=10000, 
@@ -46,7 +46,6 @@ class DTAgent(Agent):
             *args,
             **kwargs           
         )
-        print(f'Full DT: {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}')
         
         self.model = self.model.to(self.device)
 
