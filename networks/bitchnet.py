@@ -60,11 +60,11 @@ class Bitchnet(nn.Module):
         self.layer1 = Bottleneck(64, 64)
         self.layer2 = Bottleneck(64, 128)
         self.layer3 = Bottleneck(128, 256)
-        self.layer4 = Bottleneck(256, 512)
+        self.layer4 = Bottleneck(256, 256)
 
         # Linear output layer
         self.flatten = nn.Flatten()
-        self.linear = nn.Linear(15360, output_dim)
+        self.linear = nn.Linear(7680, output_dim)
 
     def forward(self, x):
         # Initial convolutional layer
