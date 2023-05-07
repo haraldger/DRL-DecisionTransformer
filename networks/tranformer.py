@@ -86,7 +86,7 @@ class GPTBlock(nn.Module):
         
         super(GPTBlock, self).__init__(*args, **kwargs)
         self.attention_block = AttentionHead(num_heads, embedding_dim, masked=True, *args, **kwargs)
-        print(f'Numel attention_block: {sum(p.numel() for p in self.attention_block.parameters() if p.requires_grad)}'
+        print(f'Numel attention_block: {sum(p.numel() for p in self.attention_block.parameters() if p.requires_grad)}')
         self.ln1 = nn.LayerNorm(embedding_dim)
         print(f'Numel ln1: {sum(p.numel() for p in self.ln1.parameters() if p.requires_grad)}')
 
