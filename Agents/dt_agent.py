@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import sys
 import torch
 from torch import nn
 import torch.optim as optim
@@ -67,12 +68,18 @@ class DTAgent(Agent):
             for batch_idx, (states, actions, rewards, returns_to_go, timesteps, dones) in enumerate(train_loader):
                 
                 states = states.to(self.device)
+                print("States ", sys.getsizeof(states))
                 actions = actions.to(self.device)
+                actions = actions.to(torch.long)
+                print("actions ", sys.getsizeof(actions))
                 returns_to_go = returns_to_go.to(self.device)
+                print("returns to go ", sys.getsizeof(returns_to_go))
                 timesteps = timesteps.to(self.device)
+                timesteps = timesteps.to(torch.long)
+                print("timesteps", sys.getsizeof(timesteps))
 
                 optimizer.zero_grad()
-                a_preds = self.model.forward(states, actions.to(torch.long), returns_to_go, timesteps.to(torch.long))
+                a_preds = self.model.forward(states, actions, returns_to_go, timesteps)
                 one_hot_actions = F.one_hot(actions, num_classes=9)
                 loss = self.cross_entropy_loss(a_preds, one_hot_actions)
                 loss.backward()
