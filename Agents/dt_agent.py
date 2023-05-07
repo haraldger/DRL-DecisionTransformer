@@ -52,7 +52,7 @@ class DTAgent(Agent):
             
                 self.model = self.model.to(self.device)
 
-        print("init: \n", prof.key_averages().table(sort_by="cuda_memory_total"))
+        print("init: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
         
 
     def cross_entropy_loss(self, action_preds, actions):
@@ -78,7 +78,7 @@ class DTAgent(Agent):
                 optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
                 train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
         
-        print("trainig_optimizer: \n", prof.key_averages().table(sort_by="cuda_memory_total"))
+        print("trainig_optimizer: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
 
         for epoch in range(num_epochs):
             for batch_idx, (states, actions, rewards, returns_to_go, timesteps, dones) in enumerate(train_loader):
@@ -92,7 +92,7 @@ class DTAgent(Agent):
                         timesteps = timesteps.to(self.device)
                         timesteps = timesteps.to(torch.long)
 
-                print("trainig vars: \n", prof.key_averages().table(sort_by="cuda_memory_total"))
+                print("trainig vars: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
 
                 optimizer.zero_grad()
                 a_preds = self.model.forward(states, actions, returns_to_go, timesteps)
