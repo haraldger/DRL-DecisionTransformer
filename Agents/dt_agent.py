@@ -27,6 +27,7 @@ class DTAgent(Agent):
     ) -> None:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(self.device)
+        print("Start: %fGB"%(torch.cuda.memory_allocated(0)/1024/1024/1024))
         
         self.act_dim = env.action_space.n
         self.max_ep_len = max_ep_len
