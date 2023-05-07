@@ -25,6 +25,8 @@ class DTAgent(Agent):
             *args,
             **kwargs
     ) -> None:
+        super(DTAgent, self).__init__(env, config)
+
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(self.device)
         print("Checkpoint B")
@@ -35,9 +37,9 @@ class DTAgent(Agent):
         self.config = config
         self.max_ep_len = config["max_episode_length"]
 
-        super(DTAgent, self).__init__(env, config)
         print("Checkpoint C")
         print(f"Before transformer: {torch.cuda.memory_allocated(0)}")
+        print("Checkpoint D")
         self.model = DecisionTransformer(
             num_blocks,
             num_heads,
