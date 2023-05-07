@@ -36,7 +36,6 @@ class DTAgent(Agent):
         self.config = config
         self.max_ep_len = config["max_episode_length"]
 
-        print(torch.cuda.memory_reserved())
         self.model = DecisionTransformer(
             num_blocks,
             num_heads,
@@ -50,7 +49,6 @@ class DTAgent(Agent):
         print(f'Full DT: {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}')
         
         self.model = self.model.to(self.device)
-        print(torch.cuda.memory_reserved())
 
 
     def cross_entropy_loss(self, action_preds, actions):
