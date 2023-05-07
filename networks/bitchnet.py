@@ -49,7 +49,7 @@ class Bitchnet(nn.Module):
         super().__init__()
 
         # Initial convolutional layer
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3)
+        self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=7, stride=2, padding=3)
         # Batch normalization after the initial convolutional layer
         self.bn1 = nn.BatchNorm2d(64)
         # Max pooling after the batch normalization layer
