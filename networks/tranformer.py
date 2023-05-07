@@ -139,6 +139,7 @@ class DecisionTransformer(nn.Module):
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(self.device)
+        print("Checkpoint A")
         print(f'Start: {torch.cuda.memory_allocated(0)}')
 
         # For now, like gpt2, use a ff size of 4*embedding_dim

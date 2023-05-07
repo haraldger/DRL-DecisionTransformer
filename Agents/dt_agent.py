@@ -27,6 +27,7 @@ class DTAgent(Agent):
     ) -> None:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(self.device)
+        print("Checkpoint B")
         
         
         self.act_dim = env.action_space.n
