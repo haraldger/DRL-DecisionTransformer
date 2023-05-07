@@ -82,7 +82,6 @@ class DTAgent(Agent):
 
                 optimizer.zero_grad()
                 a_preds = self.model.forward(states, actions, returns_to_go, timesteps).reshape(-1, self.act_dim)
-                # one_hot_actions = F.one_hot(actions, num_classes=self.act_dim).reshape(-1,self.act_dim).float()
                 loss = self.cross_entropy_loss(a_preds, actions.reshape(-1))
                 loss.backward()
                 optimizer.step()
@@ -91,7 +90,8 @@ class DTAgent(Agent):
                     print('Epoch [{}/{}], Batch [{}/{}], Loss: {:.4f}'.format(
                     epoch+1, num_epochs, batch_idx+1, len(train_loader), loss.item()))
 
-                del states, actions, returns_to_go, timesteps, a_preds, one_hot_actions, loss
+                del states, actions, returns_to_go, timesteps, a_preds, loss
+                print(0/0)
             
 
     def predict_next_action(self, state_seq, action_seq, return_to_go_seq, timestep_seq):
