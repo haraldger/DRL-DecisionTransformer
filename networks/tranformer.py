@@ -190,13 +190,11 @@ class DecisionTransformer(nn.Module):
 
         batch_size, seq_length, channels, y, x = states.shape
 
-        print(torch.cuda.memory_reserved())
         # Embed each modality with a different head
         time_embeddings = self.embed_timestep(timesteps).reshape(batch_size, seq_length, self.embedding_dim)
         action_embeddings = self.embed_action(actions).reshape(batch_size, seq_length, self.embedding_dim)
         returns_embeddings = self.embed_return(returns_to_go).reshape(batch_size, seq_length, self.embedding_dim)
         
-        print(torch.cuda.memory_reserved())
         # merge seq_length and batch_size dims for resenet
         state_merged = states.reshape(-1, channels, y, x)
         state_embeddings = self.embed_state(state_merged).reshape(batch_size, seq_length, self.embedding_dim)
