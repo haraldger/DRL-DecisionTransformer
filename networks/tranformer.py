@@ -153,38 +153,29 @@ class DecisionTransformer(nn.Module):
         self.act_dim = act_dim
 
         # Embeddings and Encodings
-        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
-            with record_function("embeddings"):
-                self.embed_timestep = nn.Embedding(max_ep_len, embedding_dim)
-                self.embed_action = nn.Embedding(act_dim, embedding_dim)
-                self.embed_return = nn.Linear(1, embedding_dim)
-                self.embed_state = resnet50(in_channels=img_channels)
+        self.embed_timestep = nn.Embedding(max_ep_len, embedding_dim)
+        self.embed_action = nn.Embedding(act_dim, embedding_dim)
+        self.embed_return = nn.Linear(1, embedding_dim)
+        self.embed_state = resnet50(in_channels=img_channels)
 
-
-                self.embed_ln = nn.LayerNorm(embedding_dim)
-
+        self.embed_ln = nn.LayerNorm(embedding_dim)
 
         # input shape to decoder block:
         # (batch, sequencelength, embeddingdim)
 
         # GPT blocks
-            with record_function("gpt"):            
-                self.gpt_blocks = nn.ModuleList([
-                    GPTBlock(num_heads, embedding_dim, ff_dim, dropout, *args, **kwargs)
-                    for _ in range(num_blocks)
-                ])
+        self.gpt_blocks = nn.ModuleList([
+            GPTBlock(num_heads, embedding_dim, ff_dim, dropout, *args, **kwargs)
+            for _ in range(num_blocks)
+        ])
 
-            with record_function("output"):            
-                # NOTE: atm just using action prediction, use the output of the gpt blocks and a few more layers
-                self.predict_action = nn.Sequential(
-                    nn.Linear(embedding_dim, ff_dim),
-                    nn.ReLU(),
-                    nn.Linear(ff_dim, self.act_dim),
-                    nn.Softmax()
-                )
-
-        print(prof.key_averages().table(sort_by="cuda_memory_usage", row_limit=20))
-
+        # NOTE: atm just using action prediction, use the output of the gpt blocks and a few more layers
+        self.predict_action = nn.Sequential(
+            nn.Linear(embedding_dim, ff_dim),
+            nn.ReLU(),
+            nn.Linear(ff_dim, self.act_dim),
+            nn.Softmax()
+        )
 
     def forward(
             self, 

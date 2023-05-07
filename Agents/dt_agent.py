@@ -12,6 +12,7 @@ from networks.tranformer import DecisionTransformer
 import gym
 from utils.data_load_transform import image_transformation, image_transformation_no_norm
 from collections import deque
+from torch.autograd.profiler import profile, record_function
 
 class DTAgent(Agent):
     def __init__(
@@ -35,19 +36,24 @@ class DTAgent(Agent):
         self.config = config
         self.max_ep_len = config["max_episode_length"]
 
-        self.model = DecisionTransformer(
-            num_blocks,
-            num_heads,
-            embedding_dim,
-            dropout,
-            max_ep_len,
-            act_dim=self.act_dim,
-            *args,
-            **kwargs           
-        )
-        
-        self.model = self.model.to(self.device)
 
+        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
+            with record_function("decision transformer init"):
+                self.model = DecisionTransformer(
+                    num_blocks,
+                    num_heads,
+                    embedding_dim,
+                    dropout,
+                    max_ep_len,
+                    act_dim=self.act_dim,
+                    *args,
+                    **kwargs           
+                )
+            
+                self.model = self.model.to(self.device)
+
+        print("init: \n", prof.key_averages().table(sort_by="cuda_memory_total"))
+        
 
     def cross_entropy_loss(self, action_preds, actions):
         # compute negative log-likelihood loss
@@ -65,18 +71,28 @@ class DTAgent(Agent):
 
         learning_rate = self.config["learning_rate"]
 
-        # Training offline with expert tracjectories
-        optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
-        train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
+            with record_function("training optimizer and loader"):
+        
+                # Training offline with expert tracjectories
+                optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
+                train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        
+        print("trainig_optimizer: \n", prof.key_averages().table(sort_by="cuda_memory_total"))
+
         for epoch in range(num_epochs):
             for batch_idx, (states, actions, rewards, returns_to_go, timesteps, dones) in enumerate(train_loader):
-                
-                states = states.to(self.device)
-                actions = actions.to(self.device)
-                actions = actions.to(torch.long)
-                returns_to_go = returns_to_go.to(self.device)
-                timesteps = timesteps.to(self.device)
-                timesteps = timesteps.to(torch.long)
+                with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
+                    with record_function("training vars"):
+    
+                        states = states.to(self.device)
+                        actions = actions.to(self.device)
+                        actions = actions.to(torch.long)
+                        returns_to_go = returns_to_go.to(self.device)
+                        timesteps = timesteps.to(self.device)
+                        timesteps = timesteps.to(torch.long)
+
+                print("trainig vars: \n", prof.key_averages().table(sort_by="cuda_memory_total"))
 
                 optimizer.zero_grad()
                 a_preds = self.model.forward(states, actions, returns_to_go, timesteps)
