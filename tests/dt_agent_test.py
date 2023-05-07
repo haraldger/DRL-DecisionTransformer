@@ -51,7 +51,7 @@ def test_train(config):
     dt_model.train(
         dataset=reader,
         num_epochs=1,
-        batch_size=2,
+        batch_size=1,
         print_freq=1
     )
 
