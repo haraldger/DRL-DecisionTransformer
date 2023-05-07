@@ -79,7 +79,7 @@ class Bottleneck(nn.Module):
         return out
     
 class ResNet(nn.Module):
-    def __init__(self, block_type, layers, in_channels=3, output_dim=768) -> None:
+    def __init__(self, block_type, layers, in_channels=3, output_dim=384) -> None:
         super().__init__()
         self.block_type = block_type
         
