@@ -3,7 +3,7 @@ import math
 import torch
 from torch import nn 
 from Agents.agent import Agent
-from networks.resnet import resnet18, resnet34
+from networks.resnet import resnet18, resnet34, resnet101
 
 class AttentionHead(nn.Module):
     def __init__(
@@ -149,7 +149,7 @@ class DecisionTransformer(nn.Module):
         self.embed_timestep = nn.Embedding(max_ep_len, embedding_dim)
         self.embed_action = nn.Embedding(act_dim, embedding_dim)
         self.embed_return = nn.Linear(1, embedding_dim)
-        self.embed_state = resnet18(in_channels=img_channels)
+        self.embed_state = resnet101(in_channels=img_channels)
 
 
         self.embed_ln = nn.LayerNorm(embedding_dim)
@@ -195,6 +195,7 @@ class DecisionTransformer(nn.Module):
         action_embeddings = self.embed_action(actions).reshape(batch_size, seq_length, self.embedding_dim)
         returns_embeddings = self.embed_return(returns_to_go).reshape(batch_size, seq_length, self.embedding_dim)
         
+        print(torch.cuda.memory_reserved())
         # merge seq_length and batch_size dims for resenet
         state_merged = states.reshape(-1, channels, y, x)
         state_embeddings = self.embed_state(state_merged).reshape(batch_size, seq_length, self.embedding_dim)
