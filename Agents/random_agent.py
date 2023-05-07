@@ -9,3 +9,6 @@ class RandomAgent(Agent):
     
     def train(self, end_of_episode=False):
         pass
+
+    def eval(self, eval_mode=True):
+        pass
