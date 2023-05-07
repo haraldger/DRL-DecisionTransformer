@@ -189,13 +189,23 @@ class DecisionTransformer(nn.Module):
         batch_size, seq_length, channels, y, x = states.shape
 
         # Embed each modality with a different head
-        time_embeddings = self.embed_timestep(timesteps).reshape(batch_size, seq_length, self.embedding_dim)
-        action_embeddings = self.embed_action(actions).reshape(batch_size, seq_length, self.embedding_dim)
-        returns_embeddings = self.embed_return(returns_to_go).reshape(batch_size, seq_length, self.embedding_dim)
+        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
+            with record_function("time_embedding"):
+                time_embeddings = self.embed_timestep(timesteps).reshape(batch_size, seq_length, self.embedding_dim)
+            with record_function("action_embedding"):
+                action_embeddings = self.embed_action(actions).reshape(batch_size, seq_length, self.embedding_dim)
+            with record_function("return_embedding"):
+                returns_embeddings = self.embed_return(returns_to_go).reshape(batch_size, seq_length, self.embedding_dim)
         
-        # merge seq_length and batch_size dims for resenet
-        state_merged = states.reshape(-1, channels, y, x)
-        state_embeddings = self.embed_state(state_merged).reshape(batch_size, seq_length, self.embedding_dim)
+        print("embeddings: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
+
+        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
+            with record_function("state_embedding"):
+                # merge seq_length and batch_size dims for resenet
+                state_merged = states.reshape(-1, channels, y, x)
+                state_embeddings = self.embed_state(state_merged).reshape(batch_size, seq_length, self.embedding_dim)
+
+        print("state embeddings: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
 
         # time embeddings 
         state_embeddings = state_embeddings + time_embeddings
@@ -203,11 +213,15 @@ class DecisionTransformer(nn.Module):
         returns_embeddings = returns_embeddings + time_embeddings
 
         # Stack inputs
-        stacked_inputs = torch.stack(
-            (returns_embeddings, state_embeddings, action_embeddings), dim=1
-        ).permute(0, 2, 1, 3).reshape(batch_size, 3*seq_length, self.embedding_dim)
+        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
+            with record_function("state_embedding"):
+                stacked_inputs = torch.stack(
+                    (returns_embeddings, state_embeddings, action_embeddings), dim=1
+                ).permute(0, 2, 1, 3).reshape(batch_size, 3*seq_length, self.embedding_dim)
 
-        stacked_data = self.embed_ln(stacked_inputs)
+                stacked_data = self.embed_ln(stacked_inputs)
+
+        print("gpt blocks: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
 
         # Pass through GPT Layers
         for block in self.gpt_blocks:

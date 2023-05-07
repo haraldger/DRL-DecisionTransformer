@@ -36,23 +36,18 @@ class DTAgent(Agent):
         self.config = config
         self.max_ep_len = config["max_episode_length"]
 
-
-        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
-            with record_function("decision transformer init"):
-                self.model = DecisionTransformer(
-                    num_blocks,
-                    num_heads,
-                    embedding_dim,
-                    dropout,
-                    max_ep_len,
-                    act_dim=self.act_dim,
-                    *args,
-                    **kwargs           
-                )
-            
-                self.model = self.model.to(self.device)
-
-        print("init: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
+        self.model = DecisionTransformer(
+            num_blocks,
+            num_heads,
+            embedding_dim,
+            dropout,
+            max_ep_len,
+            act_dim=self.act_dim,
+            *args,
+            **kwargs           
+        )
+    
+        self.model = self.model.to(self.device)
         
 
     def cross_entropy_loss(self, action_preds, actions):
@@ -71,28 +66,18 @@ class DTAgent(Agent):
 
         learning_rate = self.config["learning_rate"]
 
-        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
-            with record_function("training optimizer and loader"):
-        
-                # Training offline with expert tracjectories
-                optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
-                train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-        
-        print("trainig_optimizer: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
+        # Training offline with expert tracjectories
+        optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
+        train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
         for epoch in range(num_epochs):
             for batch_idx, (states, actions, rewards, returns_to_go, timesteps, dones) in enumerate(train_loader):
-                with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
-                    with record_function("training vars"):
-    
-                        states = states.to(self.device)
-                        actions = actions.to(self.device)
-                        actions = actions.to(torch.long)
-                        returns_to_go = returns_to_go.to(self.device)
-                        timesteps = timesteps.to(self.device)
-                        timesteps = timesteps.to(torch.long)
-
-                print("trainig vars: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
+                states = states.to(self.device)
+                actions = actions.to(self.device)
+                actions = actions.to(torch.long)
+                returns_to_go = returns_to_go.to(self.device)
+                timesteps = timesteps.to(self.device)
+                timesteps = timesteps.to(torch.long)
 
                 optimizer.zero_grad()
                 a_preds = self.model.forward(states, actions, returns_to_go, timesteps)
