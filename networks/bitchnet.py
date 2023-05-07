@@ -112,3 +112,4 @@ def test_large_bitchnet_forward():
 
 def run_tests():
     test_bitchnet_forward()
+    test_large_bitchnet_forward()
