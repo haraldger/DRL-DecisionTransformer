@@ -52,6 +52,7 @@ class DTAgent(Agent):
 
     def cross_entropy_loss(self, action_preds, actions):
         # compute negative log-likelihood loss
+        print(action_preds.shape, actions.shape)
         return F.cross_entropy(action_preds, actions)
     
 
@@ -80,8 +81,11 @@ class DTAgent(Agent):
                 timesteps = timesteps.to(torch.long)
 
                 optimizer.zero_grad()
-                a_preds = self.model.forward(states, actions, returns_to_go, timesteps)
-                one_hot_actions = F.one_hot(actions, num_classes=9)
+                a_preds = self.model.forward(states, actions, returns_to_go, timesteps).reshape(-1,9)
+                one_hot_actions = F.one_hot(actions, num_classes=9).reshape(-1,9).float()
+                print(a_preds)
+                print(one_hot_actions)
+                
                 loss = self.cross_entropy_loss(a_preds, one_hot_actions)
                 loss.backward()
                 optimizer.step()
@@ -190,12 +194,12 @@ class DTAgent(Agent):
 
             # Transform next state
             if float_state:
-                state = torch.from_numpy(state).permute(2,0,1).unsqueeze(0).float()
+                next_state = torch.from_numpy(next_state).permute(2,0,1).unsqueeze(0).float()
             else:
-                state = torch.from_numpy(state).permute(2,0,1).unsqueeze(0)
+                next_state = torch.from_numpy(next_state).permute(2,0,1).unsqueeze(0)
 
             if data_transformation is not None:
-                state = data_transformation(state)
+                next_state = data_transformation(next_state)
 
             # update sequences
             return_to_go_seq.append(return_to_go_seq[-1] - reward)
