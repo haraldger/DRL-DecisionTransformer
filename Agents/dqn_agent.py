@@ -14,8 +14,8 @@ class DQNAgent(Agent):
 
         # Initialize networks
 
-        self.target_net = DQN().to(self.device)
-        self.policy_net = DQN().to(self.device)
+        self.target_net = DQN_vanilla().to(self.device)
+        self.policy_net = DQN_vanilla().to(self.device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net.eval()
 
@@ -89,7 +89,7 @@ class DQNAgent(Agent):
             state_sample, action_sample, next_state_sample, reward_sample, done_sample = self.replay_buffer.sample_tensor_batch(self.config['batch_size'], self.device)
             
             target_q_values = self.target_net(next_state_sample).max(1)[0].detach().view(-1, 1)
-            targets = (reward_sample + self.gamma * target_q_values) * (1 - done_sample.long()) + (done_sample.long() * -10)
+            targets = (reward_sample + self.gamma * target_q_values) * (1 - done_sample.long())
 
             preds = self.policy_net(state_sample).gather(1, action_sample)
 
