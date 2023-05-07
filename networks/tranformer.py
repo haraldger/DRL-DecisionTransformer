@@ -215,19 +215,20 @@ class DecisionTransformer(nn.Module):
         returns_embeddings = returns_embeddings + time_embeddings
 
         # Stack inputs
-        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
-            with record_function("gpt_blocks"):
-                stacked_inputs = torch.stack(
-                    (returns_embeddings, state_embeddings, action_embeddings), dim=1
-                ).permute(0, 2, 1, 3).reshape(batch_size, 3*seq_length, self.embedding_dim)
+        stacked_inputs = torch.stack(
+            (returns_embeddings, state_embeddings, action_embeddings), dim=1
+        ).permute(0, 2, 1, 3).reshape(batch_size, 3*seq_length, self.embedding_dim)
 
-                stacked_data = self.embed_ln(stacked_inputs)
-
-        print("gpt blocks: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
+        stacked_data = self.embed_ln(stacked_inputs)
 
         # Pass through GPT Layers
-        for block in self.gpt_blocks:
-            stacked_data = block(stacked_data)
+        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
+            with record_function("gpt_blocks"):
+                for block in self.gpt_blocks:
+                    stacked_data = block(stacked_data)
+
+        print("gpt_blocks: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
+
 
         # # Reshape so that second dim corresponds to the original:
         # # returns (0), states (1), or actions (2)
