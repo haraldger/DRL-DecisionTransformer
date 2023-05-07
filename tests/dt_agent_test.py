@@ -59,7 +59,7 @@ def test_train(config):
 def run():
     config = load()
     print("Testing DT Agent forward pass.\n")
-    #test_forward_pass(config)
+    test_forward_pass(config)
     print("\n")
     print("Testing DT Agent training.\n")
     test_train(config)

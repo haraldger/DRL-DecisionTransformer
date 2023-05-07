@@ -72,14 +72,12 @@ class DTAgent(Agent):
         for epoch in range(num_epochs):
             for batch_idx, (states, actions, rewards, returns_to_go, timesteps, dones) in enumerate(train_loader):
                 
-                print(torch.cuda.memory_reserved())
                 states = states.to(self.device)
                 actions = actions.to(self.device)
                 actions = actions.to(torch.long)
                 returns_to_go = returns_to_go.to(self.device)
                 timesteps = timesteps.to(self.device)
                 timesteps = timesteps.to(torch.long)
-                print(torch.cuda.memory_reserved())
 
                 optimizer.zero_grad()
                 a_preds = self.model.forward(states, actions, returns_to_go, timesteps)
@@ -116,7 +114,9 @@ class DTAgent(Agent):
         timestep_seq = timestep_seq.to(self.device)
 
         action = self.model.forward(state_seq, action_seq, return_to_go_seq, timestep_seq)
+        print(torch.cuda.memory_reserved())
         del state_seq, action_seq, return_to_go_seq, timestep_seq
+        print(torch.cuda.memory_reserved())
 
         return action
 
