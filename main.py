@@ -191,7 +191,7 @@ def run():
 
         state, _ = env.reset()
         if config['verbose'] and i % config['print_frequency'] == 0:
-            print('Episode: {}/{}, total iterations: {}. Mean running reward: {}'.format(i, config['num_episodes'], total_frames, np.mean(last_100_rewards)))
+            print('Episode: {}/{}, total iterations: {}. Reward: {}. Mean running reward: {}'.format(i, config['num_episodes'], total_frames, episode_reward, np.mean(last_100_rewards)))
 
         if config['save'] and i % config['model_save_frequency'] == 0 and i != 0:
             save_name = time.strftime("%Y%m%d-%H%M%S")
