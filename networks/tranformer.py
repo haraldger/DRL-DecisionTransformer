@@ -3,7 +3,8 @@ import math
 import torch
 from torch import nn 
 from Agents.agent import Agent
-from networks.resnet import resnet18, resnet34, resnet50, resnet101
+# from networks.resnet import resnet18, resnet34, resnet50, resnet101
+from torchvision.models import resnet50
 from torch.autograd.profiler import profile, record_function
 
 class AttentionHead(nn.Module):
@@ -156,7 +157,8 @@ class DecisionTransformer(nn.Module):
         self.embed_timestep = nn.Embedding(max_ep_len, embedding_dim)
         self.embed_action = nn.Embedding(act_dim, embedding_dim)
         self.embed_return = nn.Linear(1, embedding_dim)
-        self.embed_state = resnet50(in_channels=img_channels)
+        # self.embed_state = resnet50(in_channels=img_channels)
+        self.embed_state = resnet50(pretrained=False)
 
         self.embed_ln = nn.LayerNorm(embedding_dim)
 
@@ -214,7 +216,7 @@ class DecisionTransformer(nn.Module):
 
         # Stack inputs
         with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
-            with record_function("state_embedding"):
+            with record_function("gpt_blocks"):
                 stacked_inputs = torch.stack(
                     (returns_embeddings, state_embeddings, action_embeddings), dim=1
                 ).permute(0, 2, 1, 3).reshape(batch_size, 3*seq_length, self.embedding_dim)
