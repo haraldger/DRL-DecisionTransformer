@@ -4,7 +4,7 @@ import torch
 from torch import nn 
 from Agents.agent import Agent
 from networks.resnet import resnet18, resnet34, resnet50, resnet101
-from networks.bitchnet import BitchNet
+from networks.bitchnet import Bitchnet
 from torch.autograd.profiler import profile, record_function
 
 class AttentionHead(nn.Module):
