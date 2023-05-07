@@ -23,7 +23,6 @@ class DTAgent(Agent):
             num_heads=8, 
             embedding_dim=384, 
             dropout=0.1, 
-            max_ep_len=10000, 
             *args,
             **kwargs
     ) -> None:
@@ -32,7 +31,6 @@ class DTAgent(Agent):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         self.act_dim = env.action_space.n
-        self.max_ep_len = max_ep_len
         self.config = config
         self.max_ep_len = config["max_episode_length"]
 
@@ -41,7 +39,7 @@ class DTAgent(Agent):
             num_heads,
             embedding_dim,
             dropout,
-            max_ep_len,
+            self.max_ep_len,
             act_dim=self.act_dim,
             *args,
             **kwargs           

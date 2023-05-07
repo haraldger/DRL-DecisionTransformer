@@ -158,6 +158,7 @@ class DecisionTransformer(nn.Module):
         self.embed_action = nn.Embedding(act_dim, embedding_dim)
         self.embed_return = nn.Linear(1, embedding_dim)
         # self.embed_state = resnet50(in_channels=img_channels)
+        print(img_channels, embedding_dim)
         self.embed_state = Bitchnet(in_channels=img_channels, output_dim=embedding_dim)
         self.embed_ln = nn.LayerNorm(embedding_dim)
 
