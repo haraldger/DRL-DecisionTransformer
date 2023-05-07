@@ -82,11 +82,8 @@ class DTAgent(Agent):
 
                 optimizer.zero_grad()
                 a_preds = self.model.forward(states, actions, returns_to_go, timesteps).reshape(-1,9)
-                one_hot_actions = F.one_hot(actions, num_classes=9).reshape(-1,9).float()
-                print(a_preds)
-                print(one_hot_actions)
-                
-                loss = self.cross_entropy_loss(a_preds, one_hot_actions)
+                # one_hot_actions = F.one_hot(actions, num_classes=9).reshape(-1,9).float()
+                loss = self.cross_entropy_loss(a_preds, actions)
                 loss.backward()
                 optimizer.step()
 
