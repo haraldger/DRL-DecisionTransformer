@@ -1,8 +1,8 @@
-from tests import data_collection_test, resnet_test, dqn_test
+from tests import data_collection_test, dqn_test, bitchnet_test
 
 def run():
+    bitchnet_test.run()
     data_collection_test.run()
-    resnet_test.run()
     dqn_test.run()
 
 
