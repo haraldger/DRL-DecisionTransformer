@@ -252,7 +252,7 @@ class DTAgent(Agent):
             next_action = torch.argmax(next_action_pred).item()
             
             cumulative_reward = 0
-            cumulative_state = next_state
+            cumulative_state = state
             for _ in range(actions_per_pred):
                 next_state, reward, done, info, _ = self.env.step(next_action)
                 cumulative_reward += reward
@@ -288,6 +288,7 @@ class DTAgent(Agent):
                 print("Iteration: {}, Total Reward: {}, Action: {}".format(seq_length, episode_reward, next_action))
 
             seq_length += 1
+            state = next_state
         
         return episode_reward, seq_length-1
             
