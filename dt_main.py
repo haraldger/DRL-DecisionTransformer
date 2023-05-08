@@ -93,7 +93,7 @@ def main():
     global env 
     env = gym.make('ALE/MsPacman-v5')
 
-    print('Playing MsPacman with {} agent'.format(args.agent))
+    print('Playing MsPacman with {} agent'.format(config['agent']))
     print('Mode: {}'.format('train' if args.train else 'evaluation'))
 
     # Run
