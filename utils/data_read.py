@@ -10,9 +10,7 @@ import torch
 import cv2 as cv
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
-from utils.data_transforms import image_transformation, image_transformation_no_norm
-
-state_shape = (210, 160, 3)
+from utils.data_transforms import image_transformation, image_transformation_no_norm, image_transformation_crop_downscale_norm, image_transformation_crop_downscale, image_transformation_just_norm
 
 class TrajectoryData:
     def __init__(self, init_state):
@@ -42,7 +40,17 @@ class TrajectoryData:
 class DataReader(Dataset):
     all_traj_data = []
 
-    def __init__(self, read_file, k_last_iters=1000, transform=None, float_state=False, verbose_freq=None, max_ep_load=None):
+    def __init__(
+            self, 
+            read_file, 
+            k_last_iters=1000, 
+            store_transform=None, 
+            return_transformation=False, 
+            store_float_state=False, 
+            return_float_state=False, 
+            verbose_freq=None, 
+            max_ep_load=None
+    ):
         super().__init__()
         self.all_traj_data = []
         
@@ -50,8 +58,11 @@ class DataReader(Dataset):
         self.k_last_iters = k_last_iters
     
         # If passed, will use transformation on the state
-        self.transform = transform
-        self.float_state = float_state
+        self.store_transform = store_transform
+        self.store_float_state = store_float_state
+
+        self.return_transform = return_transformation
+        self.return_float_state = return_float_state
 
         # Processes the entire file and stores it into the all_traj_data field
         with h5py.File(read_file) as file:
@@ -76,6 +87,14 @@ class DataReader(Dataset):
                 for i in range(read_states_compressed.shape[0]):
                     read_states.append(cv.imdecode(np.frombuffer(read_states_compressed[i], dtype=np.uint8), cv.IMREAD_UNCHANGED))
 
+                if self.store_float_state:
+                    read_states = torch.from_numpy(np.array(read_states)).permute(0, 3, 1, 2).float()
+                else:
+                    read_states = torch.from_numpy(np.array(read_states)).permute(0, 3, 1, 2)
+
+                if self.store_transform is not None:
+                    read_states = self.store_transform(read_states)
+
                 read_actions = episode["actions"][()]
                 read_rewards = episode["rewards"][()]
                 read_done = episode["done"][()]
@@ -99,17 +118,15 @@ class DataReader(Dataset):
         traj_data = self.all_traj_data[idx]
         traj_pairs = traj_data.fetch_last_k(self.k_last_iters)
 
-        # Nomralize image data to between 0 and 1, also have shape (seq_length, channels, height, width)
-        states = np.stack([t[0] for t in traj_pairs])
+        # States already stored transformed, so just stack them and apply return transform
+        states = torch.stack([t[0] for t in traj_pairs])
 
-        if self.float_state:
-            states = torch.from_numpy(states).permute(0, 3, 1, 2).float()
-        else:
-            states = torch.from_numpy(states).permute(0, 3, 1, 2)
+        if self.return_float_state:
+            states = states.float()
 
-        if self.transform is not None:
-            states = self.transform(states)
-        
+        if self.return_transform is not None:
+            states = self.return_transform(states)
+
         # DT model doesn't even use next_states, so just don't reutrn them 
         # next_states = torch.tensor([t[3] for t in traj_pairs]).permute(0, 3, 1, 2).float() / 255.0
         
@@ -127,7 +144,13 @@ def run_tests():
     # Test with file from data_collection.py
     TEST_OUTPUT_FILENAME = "test_traj_long.h5"
 
-    reader = DataReader(TEST_OUTPUT_FILENAME, transform=image_transformation_no_norm, float_state=False)
+    reader = DataReader(
+        TEST_OUTPUT_FILENAME, 
+        store_transform=image_transformation_crop_downscale, 
+        store_float_state=False, 
+        return_transformation=image_transformation_just_norm,
+        return_float_state=True
+    )
 
     print("Number of data trajectories: ", len(reader.all_traj_data))
 

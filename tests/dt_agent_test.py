@@ -5,7 +5,7 @@ from Agents.dt_agent import DTAgent
 from torch.utils.data import Dataset, DataLoader
 from utils.data_read import DataReader
 from utils.constants import load
-from utils.data_transforms import image_transformation, image_transformation_no_norm, image_transformation_just_norm, image_transformation_crop_downscale_norm
+from utils.data_transforms import image_transformation, image_transformation_no_norm, image_transformation_just_norm, image_transformation_crop_downscale_norm, image_transformation_just_norm, image_transformation_crop_downscale
 
 def test_forward_pass(config):
     env = gym.make('ALE/MsPacman-v5')
@@ -49,8 +49,15 @@ def test_train(config):
     config['evaluation_frequency_dt'] = 2
 
     # reader = DataReader("test_traj_long.h5", transform=image_transformation, float_state=True, k_last_iters=1024)
-    reader = DataReader("test_traj_long.h5", transform=image_transformation_crop_downscale_norm, float_state=True, k_last_iters=1024)
+    # reader = DataReader("test_traj_long.h5", transform=image_transformation_crop_downscale_norm, float_state=True, k_last_iters=1024)
     # reader = DataReader("test_traj_long.h5", transform=image_transformation_just_norm, float_state=True, k_last_iters=32)
+    reader = DataReader(
+        "test_traj_long.h5", 
+        store_transform=image_transformation_crop_downscale, 
+        store_float_state=False,
+        return_transformation=image_transformation_just_norm,
+        return_float_state=True,
+        k_last_iters=1024)
 
     dt_model.train(
         dataset=reader,
