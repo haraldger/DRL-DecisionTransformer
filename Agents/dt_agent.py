@@ -81,8 +81,6 @@ class DTAgent(Agent):
 
         for epoch in range(num_epochs):
             for batch_idx, (states, actions, rewards, returns_to_go, timesteps, dones) in enumerate(train_loader):
-                print('Batch idx: ', batch_idx)
-
                 states = states.to(self.device)
                 actions = actions.to(self.device)
                 actions = actions.to(torch.long)
