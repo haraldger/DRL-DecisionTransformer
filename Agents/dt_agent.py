@@ -256,6 +256,10 @@ class DTAgent(Agent):
             for _ in range(actions_per_pred):
                 next_state, reward, done, info, _ = self.env.step(next_action)
                 cumulative_reward += reward
+
+                if image_transformation is not None:
+                    next_state = image_transformation(next_state)
+                    
                 cumulative_state = np.maximum(cumulative_state, next_state)
                 if done:
                     break
