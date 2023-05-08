@@ -10,6 +10,8 @@ from utils import experience_replay, epsilon_scheduler, constants
 from Agents import dt_agent, random_agent, dqn_agent
 from utils.data_collection import DataCollector
 from utils.data_transforms import image_transformation_crop_downscale_norm
+from torch.utils.data import Dataset, DataLoader
+from utils.data_read import DataReader
 
 config = dict()
 agent = "dt"
@@ -28,13 +30,14 @@ def run():
         print("TODO: Evaluation mode not yet implemented")
 
     else:
+        reader = DataReader(config['input_trajectory_path'], transform=image_transformation_crop_downscale_norm, float_state=True, k_last_iters=1024)
+
         # Training mode
         dt_model = dt_agent.DTAgent(env, config)
         dt_model.train(
-            config['input_trajectory_path'], 
-            transform=image_transformation_crop_downscale_norm, 
-            float_state=True, 
-            k_last_iters=1024,
+            dataset=reader,
+            num_epochs=config['num_epochs'],
+            batch_size=1,
             verbose=config['verbose'],
             print_freq=config['print_frequency']
         )

@@ -94,7 +94,7 @@ class DTAgent(Agent):
                 loss.backward()
                 optimizer.step()
 
-                if batch_idx % print_freq == (print_freq-1):
+                if verbose and batch_idx % print_freq == (print_freq-1):
                     print('Epoch [{}/{}], Batch [{}/{}], Loss: {:.4f}'.format(
                     epoch+1, num_epochs, batch_idx+1, len(train_loader), loss.item()))
 

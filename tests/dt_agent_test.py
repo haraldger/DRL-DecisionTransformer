@@ -56,6 +56,7 @@ def test_train(config):
         dataset=reader,
         num_epochs=1,
         batch_size=1,
+        verbose=True,
         print_freq=1
     )
 
