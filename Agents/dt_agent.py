@@ -193,8 +193,6 @@ class DTAgent(Agent):
             next_action_pred = next_action_pred[-1]
             
             next_action = torch.argmax(next_action_pred).item()
-            print("next action pred: \n", next_action_pred)
-            print("taking action: ", next_action)
             
             next_state, reward, done, info, _ = self.env.step(next_action)
 
