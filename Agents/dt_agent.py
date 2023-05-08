@@ -130,6 +130,18 @@ class DTAgent(Agent):
                     plt.ylabel('Mean evaluation reward')
                     plt.savefig('results/mean_evaluation_rewards_dt.png')
 
+        # Save at the end of training
+        if self.save:
+            save_name = time.strftime("%Y%m%d-%H%M%S")
+            save_name += '_episodes_' + str(batch_idx)
+            torch.save(self.model.state_dict(), self.config['model_save_path_dt'])
+
+            # Save performance graph
+            plt.plot(range(len(training_loss)), training_loss)
+            plt.xlabel('Batches')
+            plt.ylabel('Mean running loss')
+            plt.savefig('results/mean_rewards_dt.png')
+
     def predict_next_action(
             self, 
             state_seq, 
