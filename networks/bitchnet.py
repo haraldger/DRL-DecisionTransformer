@@ -99,7 +99,7 @@ class Bitchnet(nn.Module):
                 out = self.flatten(c4)
                 out = self.linear(out)
 
-        print(b_prof.key_averages().table(sort_by="cuda_time_total", row_limit=10))
+        print(b_prof.key_averages().table(sort_by="cuda_memory_usage", row_limit=10))
             
         # Return learned encoding
         return out
