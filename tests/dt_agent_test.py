@@ -62,6 +62,7 @@ def test_train(config):
 
 def run():
     config = load()
+    config['save'] = False
     print("Testing DT Agent forward pass.\n")
     test_forward_pass(config)
     print("\n")
