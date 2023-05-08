@@ -257,9 +257,14 @@ class DTAgent(Agent):
                 next_state, reward, done, info, _ = self.env.step(next_action)
                 cumulative_reward += reward
 
+                if float_state:
+                    next_state = torch.from_numpy(next_state).permute(2,0,1).unsqueeze(0).float()
+                else:
+                    next_state = torch.from_numpy(next_state).permute(2,0,1).unsqueeze(0)
+
                 if image_transformation is not None:
                     next_state = image_transformation(next_state)
-                    
+
                 cumulative_state = np.maximum(cumulative_state, next_state)
                 if done:
                     break
