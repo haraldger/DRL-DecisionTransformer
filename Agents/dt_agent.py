@@ -94,6 +94,7 @@ class DTAgent(Agent):
 
     def predict_next_action(self, state_seq, action_seq, return_to_go_seq, timestep_seq):
         """ 
+        This is a forward pass of the model given a sequence of states, actions, returns to go, and timesteps.
         Parameters:
             - state_seq - torch tensor of images (states)
                 - Expected input shape: (batch_size, seq_length, channels, y, x)
@@ -106,6 +107,10 @@ class DTAgent(Agent):
                 - Expeected input shape: (batch_size, seq_legnth, 1)
         Precondition:
             - If this is the first step in evaluation, assumed that a start token has already been made
+        Return: 
+            - action - torch tensor of action predictions
+                - shape: (batch_size, seq_length, 1)
+                - If you want the prediction of the next action, take -1 index from the sequence
         """        
         state_seq = state_seq.to(self.device)
         action_seq = action_seq.to(self.device)
@@ -181,6 +186,9 @@ class DTAgent(Agent):
             with torch.no_grad():
                 next_action_pred = self.predict_next_action(state_seq_torch, action_seq_torch, return_to_go_seq_torch, timestep_seq_torch)
             
+            print(next_action_pred.shape)
+            print(next_action_pred[-1].shape)
+
             next_action = torch.argmax(next_action_pred).item()
             print("next action pred: \n", next_action_pred)
             print("taking action: ", next_action)
