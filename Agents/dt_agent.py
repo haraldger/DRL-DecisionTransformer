@@ -39,8 +39,8 @@ class DTAgent(Agent):
         self.profiling = profiling
 
         self.save = config['save']
-        self.model_save_freq = config['model_save_freq_dt']
-        self.eval_freq = config['eval_freq_dt']
+        self.model_save_freq = config['model_save_frequency_dt']
+        self.eval_freq = config['evaluation_frequency_dt']
         self.learning_rate = config['learning_rate_dt']
 
         self.model = DecisionTransformer(

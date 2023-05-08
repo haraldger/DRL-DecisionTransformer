@@ -45,8 +45,8 @@ def test_train(config):
     dt_model = DTAgent(env, config)
 
     config['save'] = True
-    config['model_save_freq_dt'] = 2
-    config['eval_freq_dt'] = 2
+    config['model_save_frequency_dt'] = 2
+    config['evaluation_frequency_dt'] = 2
 
     # reader = DataReader("test_traj_long.h5", transform=image_transformation, float_state=True, k_last_iters=1024)
     reader = DataReader("test_traj_long.h5", transform=image_transformation_crop_downscale_norm, float_state=True, k_last_iters=1024)
