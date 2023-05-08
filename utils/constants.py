@@ -15,7 +15,7 @@ GAMMA = 0.99                            # Discount factor for future rewards
 DQN_NETWORK = 'large'                # Type of DQN network to use. Options are 'vanilla' and 'large'
 DQN_UPDATE_FREQUENCY = 4                # Number of actions taken between successive SGD updates
 DQN_TARGET_UPDATE_FREQUENCY = 40000      # Number of actions taken between successive target network updates
-BATCH_SIZE = 32                         # Batch size for Optimizer
+BATCH_SIZE = 64                         # Batch size for Optimizer
 
 def load():
     config = {

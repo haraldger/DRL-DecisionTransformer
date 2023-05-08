@@ -70,8 +70,7 @@ class DQNAgent(Agent):
     
     def exploit(self, state):
         # Make state into PyTorch tensor
-        torch_state = torch.tensor(state, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0).to(self.device)
-        torch_state = data_transforms.image_transformation_crop_downscale(torch_state)
+        torch_state = self.transform_state(state)
 
         with torch.no_grad():
             out = self.policy_net(torch_state)  # Forward pass
@@ -96,6 +95,9 @@ class DQNAgent(Agent):
         if self.iterations % self.config['dqn_update_frequency'] == 0:   # Train 
             state_sample, action_sample, next_state_sample, reward_sample, done_sample = self.replay_buffer.sample_tensor_batch(self.config['batch_size'], self.device)
             
+            state_sample = data_transforms.image_transformation_crop_downscale(state_sample)
+            next_state_sample = data_transforms.image_transformation_crop_downscale(next_state_sample)
+
             target_q_values = self.target_net(next_state_sample).max(1)[0].detach().view(-1, 1)
             targets = reward_sample + self.gamma * target_q_values * (1 - done_sample.long())
 
@@ -129,6 +131,23 @@ class DQNAgent(Agent):
             self.policy_net.train()
         else:
             self.policy_net.eval()
+
+    def transform_state(self, state):
+        """
+        Transform the state into a PyTorch tensor.
+        """
+        state = torch.tensor(state, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0).to(self.device)
+        state = data_transforms.image_transformation_crop_downscale(state)
+        return state
+    
+    def transform_state_batch(self, state):
+        """
+        Transform the state into a PyTorch tensor.
+        """
+        state = torch.tensor(state, dtype=torch.float32).permute(0, 3, 1, 2).to(self.device)
+        state = data_transforms.image_transformation_crop_downscale(state)
+        return state
+
 
     def epsilon(self):
         return self.scheduler.get_epsilon()
