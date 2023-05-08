@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from torch import nn
+from torch.autograd.profiler import profile, record_function
 
 class Bottleneck(nn.Module):
     def __init__(self, in_channels, out_channels, stride=1) -> None:
@@ -49,7 +50,7 @@ class Bitchnet(nn.Module):
         super().__init__()
 
         # Initial convolutional layer
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3)
+        self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=7, stride=2, padding=3)
         # Batch normalization after the initial convolutional layer
         self.bn1 = nn.BatchNorm2d(64)
         # Max pooling after the batch normalization layer
@@ -64,14 +65,14 @@ class Bitchnet(nn.Module):
 
         # Linear output layer
         self.flatten = nn.Flatten()
-        self.linear = nn.Linear(15360, output_dim)
+        self.linear = nn.Linear(2048, output_dim)
 
     def forward(self, x):
         # Initial convolutional layer
         c1 = self.conv1(x)
         c1 = self.bn1(c1)
         c1 = self.maxpool_3(c1)
-
+    
         # ResNet layers
         c2 = self.layer1(c1)
         c2 = self.maxpool_2(c2)
@@ -95,7 +96,7 @@ class Bitchnet(nn.Module):
 # Tests
 
 def test_bitchnet_forward():
-    x = torch.randn(64, 3, 210, 160)    # Batch size 64, 3 channels, 210x160 pixels
+    x = torch.randn(64, 3, 84, 84)    # Batch size 64, 3 channels, 84x84 pixels
     model = Bitchnet(3)
     y = model(x)
     assert y.shape == (64, 768), f"Bad shape: {y.shape}"
@@ -103,7 +104,7 @@ def test_bitchnet_forward():
     print("Test passed!")
 
 def test_large_bitchnet_forward():
-    x = torch.randn(1000, 3, 210, 160)    # Batch size 64, 3 channels, 210x160 pixels
+    x = torch.randn(1000, 3, 84, 84)    # Batch size 64, 3 channels, 84x84 pixels
     model = Bitchnet(3)
     y = model(x)
     assert y.shape == (1000, 768), f"Bad shape: {y.shape}"
