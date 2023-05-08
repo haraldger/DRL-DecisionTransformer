@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torch import nn
 from .agent import Agent
-from utils import experience_replay, epsilon_scheduler
+from utils import experience_replay, epsilon_scheduler, data_transforms
 
 class DQNAgent(Agent):
     def __init__(self, env, config, replay_buffer=None, scheduler=None):
@@ -14,8 +14,15 @@ class DQNAgent(Agent):
 
         # Initialize networks
 
-        self.target_net = DQN().to(self.device)
-        self.policy_net = DQN().to(self.device)
+        if self.config['dqn_network'] == 'vanilla':
+            self.target_net = DQN_vanilla().to(self.device)
+            self.policy_net = DQN_vanilla().to(self.device)
+        elif self.config['dqn_network'] == 'large':
+            self.target_net = DQN().to(self.device)
+            self.policy_net = DQN().to(self.device)
+        else:   
+            raise ValueError("Invalid DQN network type. Valid types are 'vanilla' and 'large'.")
+        
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net.eval()
 
@@ -41,22 +48,41 @@ class DQNAgent(Agent):
         else:
             self.scheduler = scheduler
 
+        
+        # Performance monitoring
+
+        self.last_100_q_values = []
+
 
     def act(self, state):
-        # Reshape state to (1, 3, 210, 160) PyTorch tensor
-        torch_state = torch.tensor(state, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0).to(self.device)
-
+        """
+        Choose an action to take given the current state.
+        This function is called once per (stacked) frame when training.
+        """
         if self.training_mode == False: 
-            with torch.no_grad():
-                return self.policy_net(torch_state).argmax().item()
+            return self.exploit(state)
 
         if np.random.rand() < self.scheduler.get_epsilon() or self.iterations < self.config['initial_exploration']:
             action = self.env.action_space.sample()
             return action
         else:
-            with torch.no_grad():
-                return self.policy_net(torch_state).argmax().item()
+            return self.exploit(state)
     
+    def exploit(self, state):
+        # Make state into PyTorch tensor
+        torch_state = self.transform_state(state)
+
+        with torch.no_grad():
+            out = self.policy_net(torch_state)  # Forward pass
+
+            max_q = out.max().item()    # Performance monitoring
+            self.last_100_q_values.append(max_q)
+            if len(self.last_100_q_values) > 100:
+                self.last_100_q_values.pop(0)
+
+            action = out.argmax().item()
+            return action
+
     def train(self):
         """
         Perform one iteration of training.
@@ -69,6 +95,9 @@ class DQNAgent(Agent):
         if self.iterations % self.config['dqn_update_frequency'] == 0:   # Train 
             state_sample, action_sample, next_state_sample, reward_sample, done_sample = self.replay_buffer.sample_tensor_batch(self.config['batch_size'], self.device)
             
+            state_sample = data_transforms.image_transformation_crop_downscale(state_sample)
+            next_state_sample = data_transforms.image_transformation_crop_downscale(next_state_sample)
+
             target_q_values = self.target_net(next_state_sample).max(1)[0].detach().view(-1, 1)
             targets = reward_sample + self.gamma * target_q_values * (1 - done_sample.long())
 
@@ -83,6 +112,12 @@ class DQNAgent(Agent):
         if self.iterations % self.config['dqn_target_update_frequency'] == 0:   # Update target network
             self.target_net.load_state_dict(self.policy_net.state_dict())
 
+        # Second decay, slower than first and decays learning rate
+        if self.config['second_decay'] and self.iterations == self.config['decay_frames']:
+            self.scheduler = epsilon_scheduler.EpsilonScheduler(initial_epsilon=self.config['final_epsilon'], final_epsilon=0, decay_frames=self.config['decay_frames'], decay_mode=self.config['decay_mode'], decay_rate=self.config['decay_rate'], start_frames=0)
+            for param_group in self.optimizer.param_groups:
+                param_group['lr'] = self.config['learning_rate'] / 10
+
         self.scheduler.step()
         self.iterations += 1
 
@@ -96,6 +131,26 @@ class DQNAgent(Agent):
             self.policy_net.train()
         else:
             self.policy_net.eval()
+
+    def transform_state(self, state):
+        """
+        Transform the state into a PyTorch tensor.
+        """
+        state = torch.tensor(state, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0).to(self.device)
+        state = data_transforms.image_transformation_crop_downscale(state)
+        return state
+    
+    def transform_state_batch(self, state):
+        """
+        Transform the state into a PyTorch tensor.
+        """
+        state = torch.tensor(state, dtype=torch.float32).permute(0, 3, 1, 2).to(self.device)
+        state = data_transforms.image_transformation_crop_downscale(state)
+        return state
+
+
+    def epsilon(self):
+        return self.scheduler.get_epsilon()
 
     def save(self, name):
         torch.save(self.policy_net.state_dict(), "results/" + name + ".pt")
@@ -115,27 +170,26 @@ class DQN(nn.Module):
             nn.Conv2d(3, 32, kernel_size=3, stride=1),
             nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=3, stride=3),
             nn.Conv2d(32, 64, kernel_size=3, stride=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(64, 128, kernel_size=3, stride=1),
+            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(128, 256, kernel_size=3, stride=1),
+            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(256),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
+            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(512),
             nn.ReLU(),
-            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
+            nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(512),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(22528, 1024),
+            nn.Linear(18432, 1024),
             nn.ReLU(),
             nn.Linear(1024, 9)
         )
@@ -156,7 +210,7 @@ class DQN_vanilla(nn.Module):
             nn.Conv2d(64, 64, kernel_size=3, stride=1),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(22528, 512),
+            nn.Linear(3136, 512),
             nn.ReLU(),
             nn.Linear(512, 9)
         )
@@ -177,7 +231,7 @@ def run_tests():
 def test_dqn_forward_pass():
     print("Running DQN forward pass test...")
     model = DQN()
-    test_input = torch.randn(2, 3, 210, 160)
+    test_input = torch.randn(2, 3, 84, 84)
     print("Input shape: ", test_input.shape)
     print("Batch size: ", test_input.shape[0])
     y = model(test_input)
@@ -189,7 +243,7 @@ def test_dqn_forward_pass():
 def test_dqn_vanilla_forward_pass():
     print("Running DQN_vanilla forward pass test...")
     model = DQN_vanilla()
-    test_input = torch.randn(2, 3, 210, 160)
+    test_input = torch.randn(2, 3, 84, 84)
     print("Input shape: ", test_input.shape)
     print("Batch size: ", test_input.shape[0])
     y = model(test_input)

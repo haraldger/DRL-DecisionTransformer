@@ -144,8 +144,8 @@ def run():
 
     # Game loop
     last_100_rewards = []
-    mean_running_rewards = []
-    mean_evaluation_rewards = []
+    median_running_rewards = []
+    median_evaluation_rewards = []
     for i in range(config['num_episodes']):
         episode_reward = 0
         
@@ -187,21 +187,24 @@ def run():
         last_100_rewards.append(episode_reward)
         if len(last_100_rewards) > 100:
             last_100_rewards.pop(0)
-        mean_running_rewards.append(np.mean(last_100_rewards))
+        median_running_rewards.append(np.median(last_100_rewards))
 
         state, _ = env.reset()
         if config['verbose'] and i % config['print_frequency'] == 0:
-            print('Episode: {}/{}, total iterations: {}. Mean running reward: {}'.format(i, config['num_episodes'], total_frames, np.mean(last_100_rewards)))
+            print('Episode: {}/{}, total iterations: {}. Reward: {}. median running reward: {}'.format(i, config['num_episodes'], total_frames, episode_reward, np.median(last_100_rewards)))
+            if config['agent'] == 'dqn' and agent.iterations > config['initial_exploration']:
+                print('Epsilon: {}. Median Q-value: {}'.format(agent.epsilon(), np.median(agent.last_100_q_values)))
 
         if config['save'] and i % config['model_save_frequency'] == 0 and i != 0:
             save_name = time.strftime("%Y%m%d-%H%M%S")
             save_name += '_episodes_' + str(i)
             agent.save(save_name)
             # Save performance graph
-            plt.plot(range(len(mean_running_rewards)), mean_running_rewards)
+            plt.figure()
+            plt.plot(range(len(median_running_rewards)), median_running_rewards)
             plt.xlabel('Episodes')
-            plt.ylabel('Mean running reward')
-            plt.savefig('results/mean_rewards.png')
+            plt.ylabel('median running reward')
+            plt.savefig('results/median_rewards.png')
 
         if config['train'] and i % config['evaluation_frequency'] == 0 and i != 0:
             evaluation_rewards = []
@@ -217,28 +220,22 @@ def run():
                     state = next_state
                 evaluation_rewards.append(episode_reward)
 
-            mean_evaluation_reward = np.mean(evaluation_rewards)
-            mean_evaluation_rewards.append(mean_evaluation_reward)
-            print('Evaluation rewards: ', evaluation_rewards, ' Mean: ', mean_evaluation_reward)
+            median_evaluation_reward = np.median(evaluation_rewards)
+            median_evaluation_rewards.append(median_evaluation_reward)
+            print('Evaluation rewards: ', evaluation_rewards, ' median: ', median_evaluation_reward)
             agent.eval(False)
 
-            plt.plot(range(len(mean_evaluation_rewards)), mean_evaluation_rewards)
+            plt.figure()
+            plt.plot(range(len(median_evaluation_rewards)), median_evaluation_rewards)
             plt.xlabel('Episodes')
-            plt.ylabel('Mean evaluation reward')
-            plt.savefig('results/mean_evaluation_rewards.png')
+            plt.ylabel('median evaluation reward')
+            plt.savefig('results/median_evaluation_rewards.png')
     
     if config['dump_frequency'] is not None:
         dc.dump_write_buffer()
 
     env.close()
 
-
-
-def evaluate():
-    pass
-
-def tests():
-    dqn_agent.run_tests()
 
 
 if __name__ == '__main__':

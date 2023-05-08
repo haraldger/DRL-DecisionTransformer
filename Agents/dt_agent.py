@@ -221,6 +221,7 @@ class DTAgent(Agent):
             # Implied by deque object
 
             seq_length += 1
+            print(f'Reward: {reward}')
         
         return episode_reward, seq_length-1
             
