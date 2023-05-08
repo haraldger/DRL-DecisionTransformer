@@ -61,11 +61,11 @@ class Bitchnet(nn.Module):
         self.layer1 = Bottleneck(64, 64)
         self.layer2 = Bottleneck(64, 128)
         self.layer3 = Bottleneck(128, 256)
-        # self.layer4 = Bottleneck(256, 256)
+        self.layer4 = Bottleneck(256, 512)
 
         # Linear output layer
         self.flatten = nn.Flatten()
-        self.linear = nn.Linear(7680, output_dim)
+        self.linear = nn.Linear(15360, output_dim)
 
     def forward(self, x):
         with profile(use_cuda=True, profile_memory=True, record_shapes=True) as b_prof:
@@ -91,12 +91,14 @@ class Bitchnet(nn.Module):
                 c4 = self.layer3(c3)
                 c4 = self.maxpool_2(c4)
             
+            with record_function("c5"):
+
+                c5 = self.layer4(c4)
+
             with record_function("out"):
 
-                # c5 = self.layer4(c4)
-
                 # Linear output layer
-                out = self.flatten(c4)
+                out = self.flatten(c5)
                 out = self.linear(out)
 
         print(b_prof.key_averages().table(sort_by="cuda_memory_usage", row_limit=30))
