@@ -154,7 +154,7 @@ class DTAgent(Agent):
         else:
             state = torch.from_numpy(state).permute(2,0,1).unsqueeze(0)
 
-        z, y, x = state.shape
+        batch_size, seq_len, z, y, x = state.shape
 
         if data_transformation is not None:
             state = data_transformation(state)
