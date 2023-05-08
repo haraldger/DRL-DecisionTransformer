@@ -222,5 +222,5 @@ class DTAgent(Agent):
 
             seq_length += 1
         
-        return reward, seq_length-1
+        return episode_reward, seq_length-1
             
