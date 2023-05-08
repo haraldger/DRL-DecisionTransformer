@@ -68,41 +68,27 @@ class Bitchnet(nn.Module):
         self.linear = nn.Linear(2048, output_dim)
 
     def forward(self, x):
-        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as b_prof:
-            with record_function("c1"):
-                # Initial convolutional layer
-                c1 = self.conv1(x)
-                c1 = self.bn1(c1)
-                c1 = self.maxpool_3(c1)
-            
-            with record_function("c2"):
+        # Initial convolutional layer
+        c1 = self.conv1(x)
+        c1 = self.bn1(c1)
+        c1 = self.maxpool_3(c1)
+    
+        # ResNet layers
+        c2 = self.layer1(c1)
+        c2 = self.maxpool_2(c2)
 
-                # ResNet layers
-                c2 = self.layer1(c1)
-                c2 = self.maxpool_2(c2)
+        c3 = self.layer2(c2)
+        c3 = self.maxpool_2(c3)
 
-            with record_function("c3"):
+        c4 = self.layer3(c3)
+        c4 = self.maxpool_2(c4)
 
-                c3 = self.layer2(c2)
-                c3 = self.maxpool_2(c3)
+        c5 = self.layer4(c4)
 
-            with record_function("c4"):
+        # Linear output layer
+        out = self.flatten(c5)
+        out = self.linear(out)
 
-                c4 = self.layer3(c3)
-                c4 = self.maxpool_2(c4)
-            
-            with record_function("c5"):
-
-                c5 = self.layer4(c4)
-
-            with record_function("out"):
-
-                # Linear output layer
-                out = self.flatten(c5)
-                out = self.linear(out)
-
-        print(b_prof.key_averages().table(sort_by="cuda_memory_usage", row_limit=30))
-            
         # Return learned encoding
         return out
     

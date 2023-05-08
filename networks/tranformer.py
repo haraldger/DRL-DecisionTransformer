@@ -139,11 +139,14 @@ class DecisionTransformer(nn.Module):
             max_ep_len, 
             img_channels=1,
             act_dim=9, 
+            profiling=False,
             *args, 
             **kwargs
     ) -> None:
 
         super(DecisionTransformer, self).__init__(*args, **kwargs)
+
+        self.profiling = profiling
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -188,24 +191,33 @@ class DecisionTransformer(nn.Module):
         batch_size, seq_length, channels, y, x = states.shape
 
         # Embed each modality with a different head
-        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
-            with record_function("time_embedding"):
-                time_embeddings = self.embed_timestep(timesteps).reshape(batch_size, seq_length, self.embedding_dim)
-            with record_function("action_embedding"):
-                action_embeddings = self.embed_action(actions).reshape(batch_size, seq_length, self.embedding_dim)
-            with record_function("return_embedding"):
-                returns_embeddings = self.embed_return(returns_to_go).reshape(batch_size, seq_length, self.embedding_dim)
+        if self.profiling:
+            with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
+                with record_function("time_embedding"):
+                    time_embeddings = self.embed_timestep(timesteps).reshape(batch_size, seq_length, self.embedding_dim)
+                with record_function("action_embedding"):
+                    action_embeddings = self.embed_action(actions).reshape(batch_size, seq_length, self.embedding_dim)
+                with record_function("return_embedding"):
+                    returns_embeddings = self.embed_return(returns_to_go).reshape(batch_size, seq_length, self.embedding_dim)
         
-        print("embeddings: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
+            print("embeddings: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
+        else:
+            time_embeddings = self.embed_timestep(timesteps).reshape(batch_size, seq_length, self.embedding_dim)
+            action_embeddings = self.embed_action(actions).reshape(batch_size, seq_length, self.embedding_dim)
+            returns_embeddings = self.embed_return(returns_to_go).reshape(batch_size, seq_length, self.embedding_dim)
 
-        # with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
-            # with record_function("state_embedding"):
-                # merge seq_length and batch_size dims for resenet
-        state_merged = states.reshape(-1, channels, y, x)
-        state_embeddings = self.embed_state(state_merged)
-        state_embeddings = state_embeddings.reshape(batch_size, seq_length, self.embedding_dim)
-
-        # print("state embeddings: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
+        if self.profiling:
+            with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
+                with record_function("state_embedding"):
+                    # merge seq_length and batch_size dims for resenet
+                    state_merged = states.reshape(-1, channels, y, x)
+                    state_embeddings = self.embed_state(state_merged)
+                    state_embeddings = state_embeddings.reshape(batch_size, seq_length, self.embedding_dim)
+            print("state embeddings: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
+        else:
+            state_merged = states.reshape(-1, channels, y, x)
+            state_embeddings = self.embed_state(state_merged)
+            state_embeddings = state_embeddings.reshape(batch_size, seq_length, self.embedding_dim)
 
         # time embeddings 
         state_embeddings = state_embeddings + time_embeddings
@@ -220,13 +232,16 @@ class DecisionTransformer(nn.Module):
         stacked_data = self.embed_ln(stacked_inputs)
 
         # Pass through GPT Layers
-        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
-            with record_function("gpt_blocks"):
-                for block in self.gpt_blocks:
-                    stacked_data = block(stacked_data)
+        if self.profiling:
+            with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
+                with record_function("gpt_blocks"):
+                    for block in self.gpt_blocks:
+                        stacked_data = block(stacked_data)
 
-        print("gpt_blocks: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
-
+            print("gpt_blocks: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
+        else:
+            for block in self.gpt_blocks:
+                stacked_data = block(stacked_data)
 
         # # Reshape so that second dim corresponds to the original:
         # # returns (0), states (1), or actions (2)

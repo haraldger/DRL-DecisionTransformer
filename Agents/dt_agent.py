@@ -23,6 +23,7 @@ class DTAgent(Agent):
             num_heads=8, 
             embedding_dim=768, 
             dropout=0.1, 
+            profiling=False,
             *args,
             **kwargs
     ) -> None:
@@ -33,6 +34,7 @@ class DTAgent(Agent):
         self.act_dim = env.action_space.n
         self.config = config
         self.max_ep_len = config["max_episode_length"]
+        self.profiling = profiling
 
         self.model = DecisionTransformer(
             num_blocks,
@@ -41,12 +43,12 @@ class DTAgent(Agent):
             dropout,
             self.max_ep_len,
             act_dim=self.act_dim,
+            profiling=profiling
             *args,
             **kwargs           
         )
     
         self.model = self.model.to(self.device)
-        
 
     def cross_entropy_loss(self, action_preds, actions):
         # compute negative log-likelihood loss
@@ -88,7 +90,6 @@ class DTAgent(Agent):
                     epoch+1, num_epochs, batch_idx+1, len(train_loader), loss.item()))
 
                 del states, actions, returns_to_go, timesteps, a_preds, loss
-                print(0/0)
             
 
     def predict_next_action(self, state_seq, action_seq, return_to_go_seq, timestep_seq):
