@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torch import nn
 from .agent import Agent
-from utils import experience_replay, epsilon_scheduler
+from utils import experience_replay, epsilon_scheduler, data_transforms
 
 class DQNAgent(Agent):
     def __init__(self, env, config, replay_buffer=None, scheduler=None):
@@ -69,8 +69,9 @@ class DQNAgent(Agent):
             return self.exploit(state)
     
     def exploit(self, state):
-        # Reshape state to (1, 3, 210, 160) PyTorch tensor
+        # Make state into PyTorch tensor
         torch_state = torch.tensor(state, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0).to(self.device)
+        torch_state = data_transforms.image_transformation_crop_downscale(torch_state)
 
         with torch.no_grad():
             out = self.policy_net(torch_state)  # Forward pass
@@ -96,7 +97,7 @@ class DQNAgent(Agent):
             state_sample, action_sample, next_state_sample, reward_sample, done_sample = self.replay_buffer.sample_tensor_batch(self.config['batch_size'], self.device)
             
             target_q_values = self.target_net(next_state_sample).max(1)[0].detach().view(-1, 1)
-            targets = (reward_sample + self.gamma * target_q_values) * (1 - done_sample.long())
+            targets = reward_sample + self.gamma * target_q_values * (1 - done_sample.long())
 
             preds = self.policy_net(state_sample).gather(1, action_sample)
 
@@ -144,27 +145,26 @@ class DQN(nn.Module):
             nn.Conv2d(3, 32, kernel_size=3, stride=1),
             nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=3, stride=3),
             nn.Conv2d(32, 64, kernel_size=3, stride=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(64, 128, kernel_size=3, stride=1),
+            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(128, 256, kernel_size=3, stride=1),
+            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(256),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
+            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(512),
             nn.ReLU(),
-            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
+            nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(512),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(22528, 1024),
+            nn.Linear(18432, 1024),
             nn.ReLU(),
             nn.Linear(1024, 9)
         )
@@ -185,7 +185,7 @@ class DQN_vanilla(nn.Module):
             nn.Conv2d(64, 64, kernel_size=3, stride=1),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(22528, 512),
+            nn.Linear(3136, 512),
             nn.ReLU(),
             nn.Linear(512, 9)
         )
@@ -206,7 +206,7 @@ def run_tests():
 def test_dqn_forward_pass():
     print("Running DQN forward pass test...")
     model = DQN()
-    test_input = torch.randn(2, 3, 210, 160)
+    test_input = torch.randn(2, 3, 84, 84)
     print("Input shape: ", test_input.shape)
     print("Batch size: ", test_input.shape[0])
     y = model(test_input)
@@ -218,7 +218,7 @@ def test_dqn_forward_pass():
 def test_dqn_vanilla_forward_pass():
     print("Running DQN_vanilla forward pass test...")
     model = DQN_vanilla()
-    test_input = torch.randn(2, 3, 210, 160)
+    test_input = torch.randn(2, 3, 84, 84)
     print("Input shape: ", test_input.shape)
     print("Batch size: ", test_input.shape[0])
     y = model(test_input)

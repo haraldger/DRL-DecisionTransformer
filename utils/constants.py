@@ -11,7 +11,7 @@ DECAY_MODE = 'linear'                   # Mode of operation for decay. Single wi
 DECAY_RATE = 0.99                        # The rate at which epsilon decays. E.g., if 0.1, epsilon will be divided by 10 after every decay_frames number of frames, until it is less than or equal to final_epsilon. Useless if decay_mode == 'single' or 'linear'.
 LEARNING_RATE = 0.00025             # Learning rate for DQN
 GAMMA = 0.99                            # Discount factor for future rewards
-DQN_NETWORK = 'vanilla'                # Type of DQN network to use. Options are 'vanilla' and 'large'
+DQN_NETWORK = 'large'                # Type of DQN network to use. Options are 'vanilla' and 'large'
 DQN_UPDATE_FREQUENCY = 4                # Number of actions taken between successive SGD updates
 DQN_TARGET_UPDATE_FREQUENCY = 40000      # Number of actions taken between successive target network updates
 BATCH_SIZE = 32                         # Batch size for Optimizer
