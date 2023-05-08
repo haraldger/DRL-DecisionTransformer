@@ -55,14 +55,18 @@ class DataReader(Dataset):
 
         # Processes the entire file and stores it into the all_traj_data field
         with h5py.File(read_file) as file:
+            episodes = file.keys()
             if max_ep_load is None:
                 total_num_ep = total_num_ep
             else:
-                total_num_ep = max(max_ep_load, len(file.keys()))
-                                   
-            for ep_num, ep in enumerate(file.keys()):
-                if verbose_freq is not None and ep_num % verbose_freq == (verbose_freq-1):
-                    print("Processing state: {}/{}".format(ep_num+1, total_num_ep))
+                total_num_ep = max(max_ep_load, len(episodes))
+
+            # pick total_num_ep random episodes
+            load_episodes = random.sample(episodes, total_num_ep)
+
+            for episode_num, ep in enumerate(load_episodes):
+                if verbose_freq is not None and episode_num % verbose_freq == (verbose_freq-1):
+                    print("Processing state: {}/{}".format(episode_num+1, total_num_ep))
         
                 episode = file[ep]
                 
