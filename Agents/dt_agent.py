@@ -275,15 +275,6 @@ class DTAgent(Agent):
             if data_collection_obj is not None:
                 data_collection_obj.store_next_step(next_action, reward, next_state, done)
 
-            # Transform next state
-            if float_state:
-                next_state = torch.from_numpy(next_state).permute(2,0,1).unsqueeze(0).float()
-            else:
-                next_state = torch.from_numpy(next_state).permute(2,0,1).unsqueeze(0)
-
-            if data_transformation is not None:
-                next_state = data_transformation(next_state)
-
             # update sequences
             return_to_go_seq.append(return_to_go_seq[-1] - reward)
             state_seq.append(next_state)
