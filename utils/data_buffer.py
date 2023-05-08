@@ -33,6 +33,7 @@ class DataBuffer:
             self.data_pairs.append((self.inital_state, action, reward, next_state, done))
         else:
             self.data_pairs.append((self.data_pairs[-1][3], action, reward, next_state, done))
+        self.episode_reward += reward
 
     def finalize(self):
         """
