@@ -198,14 +198,14 @@ class DecisionTransformer(nn.Module):
         
         print("embeddings: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
 
-        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
-            with record_function("state_embedding"):
+        # with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
+            # with record_function("state_embedding"):
                 # merge seq_length and batch_size dims for resenet
-                state_merged = states.reshape(-1, channels, y, x)
-                state_embeddings = self.embed_state(state_merged)
-                state_embeddings = state_embeddings.reshape(batch_size, seq_length, self.embedding_dim)
+        state_merged = states.reshape(-1, channels, y, x)
+        state_embeddings = self.embed_state(state_merged)
+        state_embeddings = state_embeddings.reshape(batch_size, seq_length, self.embedding_dim)
 
-        print("state embeddings: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
+        # print("state embeddings: \n", prof.key_averages().table(sort_by="cuda_memory_usage"))
 
         # time embeddings 
         state_embeddings = state_embeddings + time_embeddings

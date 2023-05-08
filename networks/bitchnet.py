@@ -68,7 +68,7 @@ class Bitchnet(nn.Module):
         self.linear = nn.Linear(7680, output_dim)
 
     def forward(self, x):
-        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as prof:
+        with profile(use_cuda=True, profile_memory=True, record_shapes=True) as b_prof:
             with record_function("c1"):
                 # Initial convolutional layer
                 c1 = self.conv1(x)
