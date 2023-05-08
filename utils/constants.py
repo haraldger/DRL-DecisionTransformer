@@ -16,6 +16,15 @@ DQN_TARGET_UPDATE_FREQUENCY = 40000      # Number of actions taken between succe
 BATCH_SIZE = 32                         # Batch size for Optimizer
 MAX_EPISODE_LENGTH = 10000              # Maximum number of frames in an episode
 
+
+# Constants for DT ----------------------------------------------
+LEARNING_RATE_DT = 0.00025
+
+# Number of Batches
+MODEL_SAVE_FREQUENCY_DT = 500
+EVALUATION_FREQUENCY_DT = 500
+
+
 def load():
     config = {
         'print_frequency': PRINT_FREQUENCY,
@@ -35,5 +44,8 @@ def load():
         'dqn_target_update_frequency': DQN_TARGET_UPDATE_FREQUENCY,
         'batch_size': BATCH_SIZE,
         'max_episode_length': MAX_EPISODE_LENGTH,
+        'model_save_frequency_dt': MODEL_SAVE_FREQUENCY_DT,
+        'evaluation_frequency_dt': EVALUATION_FREQUENCY_DT,
+        'learning_rate_dt': LEARNING_RATE_DT
     }
     return config

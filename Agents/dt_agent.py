@@ -10,9 +10,11 @@ from Agents.agent import Agent
 from networks.resnet import resnet34, resnet50 
 from networks.tranformer import DecisionTransformer
 import gym
-from utils.data_transforms import image_transformation, image_transformation_no_norm
+from utils.data_transforms import image_transformation, image_transformation_no_norm, image_transformation_crop_downscale_norm
 from collections import deque
 from torch.autograd.profiler import profile, record_function
+import time
+import matplotlib.pyplot as plt
 
 class DTAgent(Agent):
     def __init__(
@@ -35,6 +37,11 @@ class DTAgent(Agent):
         self.config = config
         self.max_ep_len = config["max_episode_length"]
         self.profiling = profiling
+
+        self.save = config['save']
+        self.model_save_freq = config['model_save_freq_dt']
+        self.eval_freq = config['eval_freq_dt']
+        self.learning_rate = config['learning_rate_dt']
 
         self.model = DecisionTransformer(
             num_blocks,
@@ -60,14 +67,16 @@ class DTAgent(Agent):
             dataset, 
             batch_size,
             num_epochs,
+            verbose=False,
             print_freq=5
     ):
         self.model.train()
 
-        learning_rate = self.config["learning_rate"]
+        training_loss =  []
+        mean_evaluation_rewards = [0]
 
         # Training offline with expert tracjectories
-        optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
+        optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
         train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
         for epoch in range(num_epochs):
@@ -90,9 +99,44 @@ class DTAgent(Agent):
                     epoch+1, num_epochs, batch_idx+1, len(train_loader), loss.item()))
 
                 del states, actions, returns_to_go, timesteps, a_preds, loss
-            
 
-    def predict_next_action(self, state_seq, action_seq, return_to_go_seq, timestep_seq):
+                training_loss.append(loss.item())
+
+                if self.save and batch_idx % self.model_save_freq == (self.model_save_freq-1):
+                    save_name = time.strftime("%Y%m%d-%H%M%S")
+                    save_name += '_episodes_' + str(batch_idx)
+                    torch.save(self.model.state_dict(), self.config['model_save_path_dt'])
+
+                    # Save performance graph
+                    plt.plot(range(len(training_loss)), training_loss)
+                    plt.xlabel('Batches')
+                    plt.ylabel('Mean running loss')
+                    plt.savefig('results/mean_rewards_dt.png')
+
+                if batch_idx % self.eval_freq == 0 and batch_idx != 0:
+                    # Evaluate model
+                    self.model.eval()
+                    evaluation_rewards = []
+                    for eval_idx in range(5):
+                        episode_reward, episode_seq_len = self.run_evaluation_traj(data_transformation=image_transformation_crop_downscale_norm, float_state=True)
+                        evaluation_rewards.append(episode_reward)
+                    mean_eval_reward = np.mean(evaluation_rewards)
+                    mean_evaluation_rewards.append(mean_eval_reward)
+                    print('Evaluation rewards: ', evaluation_rewards, ' Mean: ', mean_eval_reward)
+                    self.model.train()
+
+                    plt.plot(range(len(mean_evaluation_rewards)), mean_evaluation_rewards)
+                    plt.xlabel('Episodes')
+                    plt.ylabel('Mean evaluation reward')
+                    plt.savefig('results/mean_evaluation_rewards_dt.png')
+
+    def predict_next_action(
+            self, 
+            state_seq, 
+            action_seq, 
+            return_to_go_seq, 
+            timestep_seq
+    ):
         """ 
         This is a forward pass of the model given a sequence of states, actions, returns to go, and timesteps.
         Parameters:
@@ -125,7 +169,15 @@ class DTAgent(Agent):
         return action
 
 
-    def run_evaluation_traj(self, target_reward=11000, traj_mem_size=1000, data_collection_obj=None, data_transformation=None, float_state=False):
+    def run_evaluation_traj(
+            self, 
+            target_reward=1500, 
+            traj_mem_size=1000, 
+            data_collection_obj=None, 
+            data_transformation=None, 
+            float_state=False,
+            debug_print_freq=None
+    ):
         """ 
         Run a trajectory, predicting actions with the model.
 
@@ -137,9 +189,10 @@ class DTAgent(Agent):
             - data_collection_obj - If not none, will collect trajectory information
             - data_transformation - If passed, will use this function to transform the data
             - float_state - If true, will convert state to float
+            - debug_print_freq - If not none, will print out debug information every 'debug_print_freq' iterations
         Returns:
-            - reward: final reward of the trajectory
-            - 
+            - episode_reward: final reward of the trajectory
+            - seq_length: length of the trajectory (not counting initial idle frames)
         """     
 
         state, _ = self.env.reset()
@@ -219,6 +272,9 @@ class DTAgent(Agent):
             
             # Keep only the last mem-length iterations
             # Implied by deque object
+
+            if debug_print_freq is not None and seq_length % debug_print_freq == 0:
+                print("Iteration: {}, Total Reward: {}, Action: {}".format(seq_length, episode_reward, next_action))
 
             seq_length += 1
         
