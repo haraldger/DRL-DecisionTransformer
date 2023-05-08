@@ -39,7 +39,8 @@ def run():
             transform=image_transformation_crop_downscale_norm, 
             float_state=True, 
             k_last_iters=1024,
-            verbose_freq=50
+            verbose_freq=50,
+            max_ep_load=10
         )
 
         print("Starting training...")

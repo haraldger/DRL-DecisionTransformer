@@ -42,7 +42,7 @@ class TrajectoryData:
 class DataReader(Dataset):
     all_traj_data = []
 
-    def __init__(self, read_file, k_last_iters=1000, transform=None, float_state=False, verbose_freq=None):
+    def __init__(self, read_file, k_last_iters=1000, transform=None, float_state=False, verbose_freq=None, max_ep_load=None):
         super().__init__()
         self.all_traj_data = []
         
@@ -55,7 +55,11 @@ class DataReader(Dataset):
 
         # Processes the entire file and stores it into the all_traj_data field
         with h5py.File(read_file) as file:
-            total_num_ep = len(file.keys())
+            if max_ep_load is None:
+                total_num_ep = total_num_ep
+            else:
+                total_num_ep = max(max_ep_load, len(file.keys()))
+                                   
             for ep_num, ep in enumerate(file.keys()):
                 if verbose_freq is not None and ep_num % verbose_freq == (verbose_freq-1):
                     print("Processing state: {}/{}".format(ep_num+1, total_num_ep))
