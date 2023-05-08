@@ -43,12 +43,10 @@ class DataCollector():
             self.running_reward.append(self.running_reward[-1] + reward)
         
         if done:
-            print("End of trajectory. Writing or storing to buffer ...")
             num_iterations = len(self.action_buff)
             # Check if we should write to file, or just write to buffer
             eps_in_buffer = self.write_buffer.keys()
             if len(eps_in_buffer) == (self.episodes_per_write-1):
-                print("Buffer full. Writing to file ...")
                 # Write data into the outfile (both this episode and buffer episodes)
                 # This will be in pairs of (state, action, reward, next_state, reward_to_go, done)
                 
@@ -86,7 +84,6 @@ class DataCollector():
                 self.write_buffer = {}
 
             else:
-                print("Buffer not full. Storing in buffer ...")
                 # Write data to write buffer
                 done_arr = np.full((num_iterations), False)
                 done_arr[-1] = True
