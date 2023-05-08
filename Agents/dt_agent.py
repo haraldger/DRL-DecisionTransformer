@@ -98,9 +98,9 @@ class DTAgent(Agent):
                     print('Epoch [{}/{}], Batch [{}/{}], Loss: {:.4f}'.format(
                     epoch+1, num_epochs, batch_idx+1, len(train_loader), loss.item()))
 
-                del states, actions, returns_to_go, timesteps, a_preds, loss
-
                 training_loss.append(loss.item())
+
+                del states, actions, returns_to_go, timesteps, a_preds
 
                 if self.save and batch_idx % self.model_save_freq == (self.model_save_freq-1):
                     save_name = time.strftime("%Y%m%d-%H%M%S")
