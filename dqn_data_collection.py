@@ -27,6 +27,7 @@ def main():
     parser.add_argument('-t', '--train', action='store_true', help='Train the agent')
     parser.add_argument('-n', '--num_episodes', type=int, default=100000, help='Number of episodes to train')
     parser.add_argument('-v', '--verbose', action='store_true', help='Verbose mode')
+    parser.add_argument('-pf', '--print_frequency', type=int, help='Frequency in episodes to print progress')
     parser.add_argument('-l', '--load', type=str, default="None", help='Load model. Provide name of model file, without extension or folder')
     parser.add_argument('--evaluation_frequency', type=int, help='Frequency in episodes to evaluate model')
 
@@ -77,7 +78,7 @@ def main():
     global env 
     env = gym.make('ALE/MsPacman-v5')
 
-    print('Playing MsPacman with {} agent'.format(args.agent))
+    print('DQN agent data collection')
     print('Mode: {}'.format('train' if args.train else 'evaluation'))
 
     # Run
