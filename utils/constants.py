@@ -21,9 +21,10 @@ MAX_EPISODE_LENGTH = 10000              # Maximum number of frames in an episode
 LEARNING_RATE_DT = 0.00001
 
 # Number of Batches
-MODEL_SAVE_FREQUENCY_DT = 500
-EVALUATION_FREQUENCY_DT = 500
+MODEL_SAVE_FREQUENCY_DT = 2
+EVALUATION_FREQUENCY_DT = 2
 
+SAVE_MODEL_PATH_DT = "dt_model.pt"
 
 def load():
     config = {
@@ -46,6 +47,7 @@ def load():
         'max_episode_length': MAX_EPISODE_LENGTH,
         'model_save_frequency_dt': MODEL_SAVE_FREQUENCY_DT,
         'evaluation_frequency_dt': EVALUATION_FREQUENCY_DT,
-        'learning_rate_dt': LEARNING_RATE_DT
+        'learning_rate_dt': LEARNING_RATE_DT,
+        'save_model_path_dt': SAVE_MODEL_PATH_DT,
     }
     return config
