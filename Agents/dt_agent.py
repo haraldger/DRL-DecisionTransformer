@@ -147,6 +147,8 @@ class DTAgent(Agent):
 
         self.model.eval()
 
+        episode_reward = 0
+
         for _ in range(inactive_frams):
             state, reward, done, info, _ = self.env.step(0)
 
@@ -195,6 +197,7 @@ class DTAgent(Agent):
             next_action = torch.argmax(next_action_pred).item()
             
             next_state, reward, done, info, _ = self.env.step(next_action)
+            episode_reward += reward
 
             if data_collection_obj is not None:
                 data_collection_obj.store_next_step(next_action, reward, next_state, done)
