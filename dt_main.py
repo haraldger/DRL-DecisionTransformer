@@ -68,7 +68,7 @@ def main():
     parser.add_argument('-pf', '--print_frequency', type=int, help='Frequency in episodes to print progress')
     parser.add_argument('-df', '--dump_frequency', type=int, default=None, help="How many episodes between writing trajectories to outfile")
     parser.add_argument('-i', '--input', type=str, default="random_trajectories.h5", help="Input trajectory path for data collection")
-    parser.add_argument('-o', '--output', type=str, default="random_trajectories.h5", help="Output trajectory path for data collection")
+    parser.add_argument('-o', '--eval_output', type=str, default="random_trajectories.h5", help="Output trajectory path for data collection")
     parser.add_argument('--evaluation_frequency', type=int, help='Frequency in episodes to evaluate model')
 
     parser.add_argument('-lr', '--learning_rate', type=float, help='Learning rate')
@@ -89,7 +89,7 @@ def main():
     config['verbose'] = args.verbose
     config['load'] = args.load
     config['dump_frequency'] = args.dump_frequency
-    config['output'] = args.output
+    config['output'] = args.eval_output
     config['data_trajectories'] = args.data_trajectories
 
     if args.print_frequency is not None:
