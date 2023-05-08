@@ -16,6 +16,7 @@ DQN_NETWORK = 'large'                # Type of DQN network to use. Options are '
 DQN_UPDATE_FREQUENCY = 4                # Number of actions taken between successive SGD updates
 DQN_TARGET_UPDATE_FREQUENCY = 40000      # Number of actions taken between successive target network updates
 BATCH_SIZE = 64                         # Batch size for Optimizer
+MAX_EPISODE_LENGTH = 10000              # Maximum number of frames in an episode
 
 def load():
     config = {
@@ -37,5 +38,6 @@ def load():
         'dqn_update_frequency': DQN_UPDATE_FREQUENCY,
         'dqn_target_update_frequency': DQN_TARGET_UPDATE_FREQUENCY,
         'batch_size': BATCH_SIZE,
+        'max_episode_length': MAX_EPISODE_LENGTH,
     }
     return config

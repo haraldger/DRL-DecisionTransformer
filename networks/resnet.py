@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from torch import nn
+import torch.nn.functional as F
 
 class BasicBlock(nn.Module):
     def __init__(self, in_channels, out_channels, stride=1) -> None:
@@ -8,7 +9,6 @@ class BasicBlock(nn.Module):
 
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
         self.bn1 = nn.BatchNorm2d(out_channels)
-        self.relu = nn.ReLU()
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
         self.bn2 = nn.BatchNorm2d(out_channels)
         
@@ -24,7 +24,7 @@ class BasicBlock(nn.Module):
 
         out = self.conv1(x)
         out = self.bn1(out) 
-        out = self.relu(out)
+        out = F.relu(out)
 
         out = self.conv2(out)
         out = self.bn2(out)
@@ -33,7 +33,7 @@ class BasicBlock(nn.Module):
             residual = self.downsample(x)
 
         out += residual
-        out = self.relu(out)
+        out = F.relu(out)
 
         return out
     
@@ -43,7 +43,6 @@ class Bottleneck(nn.Module):
 
         self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=1, stride=stride, padding=0)
         self.bn1 = nn.BatchNorm2d(64)
-        self.relu = nn.ReLU()
         self.conv2 = nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1)
         self.bn2 = nn.BatchNorm2d(64)
         self.conv3 = nn.Conv2d(64, out_channels, kernel_size=1, stride=1, padding=0)
@@ -61,11 +60,11 @@ class Bottleneck(nn.Module):
 
         out = self.conv1(x)
         out = self.bn1(out) 
-        out = self.relu(out)
+        out = F.relu(out)
 
         out = self.conv2(out)
         out = self.bn2(out) 
-        out = self.relu(out)
+        out = F.relu(out)
 
         out = self.conv3(out)
         out = self.bn3(out) 
@@ -74,17 +73,17 @@ class Bottleneck(nn.Module):
             residual = self.downsample(x)
 
         out += residual
-        out = self.relu(out)
+        out = F.relu(out)
 
         return out
     
 class ResNet(nn.Module):
-    def __init__(self, block_type, layers, output_dim=768) -> None:
+    def __init__(self, block_type, layers, in_channels=3, output_dim=384) -> None:
         super().__init__()
         self.block_type = block_type
         
         # Initial convolutional layer
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3)
+        self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=7, stride=2, padding=3)
         # Batch normalization after the initial convolutional layer
         self.bn1 = nn.BatchNorm2d(64)
         # Max pooling after the batch normalization layer
@@ -139,20 +138,20 @@ class ResNet(nn.Module):
         return nn.Sequential(*blocks)
 
     
-def resnet18():
-    return ResNet(BasicBlock, [2, 2, 2, 2])
+def resnet18(in_channels=3):
+    return ResNet(BasicBlock, [2, 2, 2, 2], in_channels=in_channels)
 
-def resnet34():
-    return ResNet(BasicBlock, [3, 4, 6, 3])
+def resnet34(in_channels=3):
+    return ResNet(BasicBlock, [3, 4, 6, 3], in_channels=in_channels)
 
-def resnet50():
-    return ResNet(Bottleneck, [3, 4, 6, 3])
+def resnet50(in_channels=3):
+    return ResNet(Bottleneck, [3, 4, 6, 3], in_channels=in_channels)
 
-def resnet101():
-    return ResNet(Bottleneck, [3, 4, 23, 3])
+def resnet101(in_channels=3):
+    return ResNet(Bottleneck, [3, 4, 23, 3], in_channels=in_channels)
 
-def resnet152():
-    return ResNet(Bottleneck, [3, 8, 36, 3])
+def resnet152(in_channels=3):
+    return ResNet(Bottleneck, [3, 8, 36, 3], in_channels=in_channels)
 
 
 # Test the network
@@ -166,30 +165,31 @@ def test_network_and_output_shapes():
     print(f'Batch size = {x.shape[0]}')
     y = net(x)
     print(f'ResNet18 output shape = {y.shape}')
-    assert y.shape == (2, 768)
+    assert y.shape == (2, 384)
 
     net = resnet34()
     y = net(x)
     print(f'ResNet34 output shape = {y.shape}')
-    assert y.shape == (2, 768)
+    assert y.shape == (2, 384)
 
     net = resnet50()
     y = net(x)
     print(f'ResNet50 output shape = {y.shape}')
-    assert y.shape == (2, 768)
+    assert y.shape == (2, 384)
 
     net = resnet101()
     y = net(x)
     print(f'ResNet101 output shape = {y.shape}')
-    assert y.shape == (2, 768)
+    assert y.shape == (2, 384)
 
     net = resnet152()
     y = net(x)
     print(f'ResNet152 output shape = {y.shape}')   
-    assert y.shape == (2, 768)
+    assert y.shape == (2, 384)
 
     print('Tests passed!')
 
 def run_tests():
     test_network_and_output_shapes()
+
 
