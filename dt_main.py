@@ -32,6 +32,9 @@ def run():
     else:
         reader = DataReader(config['input_trajectory_path'], transform=image_transformation_crop_downscale_norm, float_state=True, k_last_iters=1024)
 
+        print("Save frequency: ", config['model_save_frequency_dt'])
+        print("Evaluation frequency: ", config['evaluation_frequency_dt'])
+
         # Training mode
         dt_model = dt_agent.DTAgent(env, config)
         dt_model.train(
