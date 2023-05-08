@@ -18,7 +18,7 @@ MAX_EPISODE_LENGTH = 10000              # Maximum number of frames in an episode
 
 
 # Constants for DT ----------------------------------------------
-LEARNING_RATE_DT = 0.00025
+LEARNING_RATE_DT = 0.00001
 
 # Number of Batches
 MODEL_SAVE_FREQUENCY_DT = 500
