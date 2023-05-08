@@ -262,8 +262,8 @@ class DTAgent(Agent):
                 else:
                     next_state = torch.from_numpy(next_state).permute(2,0,1).unsqueeze(0)
 
-                if image_transformation is not None:
-                    next_state = image_transformation(next_state)
+                if data_transformation is not None:
+                    next_state = data_transformation(next_state)
 
                 cumulative_state = np.maximum(cumulative_state, next_state)
                 if done:
