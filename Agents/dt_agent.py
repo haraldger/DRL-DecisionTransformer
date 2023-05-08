@@ -10,7 +10,7 @@ from Agents.agent import Agent
 from networks.resnet import resnet34, resnet50 
 from networks.tranformer import DecisionTransformer
 import gym
-from utils.data_load_transform import image_transformation, image_transformation_no_norm
+from utils.data_transforms import image_transformation, image_transformation_no_norm
 from collections import deque
 from torch.autograd.profiler import profile, record_function
 
@@ -138,7 +138,6 @@ class DTAgent(Agent):
         """     
 
         state, _ = self.env.reset()
-        y, x, z = state.shape
         inactive_frams = 65
 
         self.model.eval()
@@ -154,6 +153,8 @@ class DTAgent(Agent):
             state = torch.from_numpy(state).permute(2,0,1).unsqueeze(0).float()
         else:
             state = torch.from_numpy(state).permute(2,0,1).unsqueeze(0)
+
+        z, y, x = state.shape
 
         if data_transformation is not None:
             state = data_transformation(state)
