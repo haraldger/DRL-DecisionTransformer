@@ -69,7 +69,7 @@ def main():
     config['agent'] = 'dt'
     config['train'] = args.train
     config['input_trajectory_path'] = args.input
-    config['num_epochs'] = args.num_episodes
+    config['num_epochs'] = args.num_epochs
     config['verbose'] = args.verbose
     config['load'] = args.load
     config['dump_frequency'] = args.dump_frequency
