@@ -171,6 +171,7 @@ class DTAgent(Agent):
 
     def run_evaluation_traj(
             self, 
+            actions_per_pred=3,
             target_reward=1500, 
             traj_mem_size=1000, 
             data_collection_obj=None, 
@@ -182,6 +183,7 @@ class DTAgent(Agent):
         Run a trajectory, predicting actions with the model.
 
         Parameters:
+            - actions_per_pred - for a single action prediction, this action will be taken this many times
             - target_reward - what we want the reward to be 
                 - Experiment with this value, max possible is 11000
             - traj_mem_size - how many of the past iterations we pass into model 
@@ -192,7 +194,7 @@ class DTAgent(Agent):
             - debug_print_freq - If not none, will print out debug information every 'debug_print_freq' iterations
         Returns:
             - episode_reward: final reward of the trajectory
-            - seq_length: length of the trajectory (not counting initial idle frames)
+            - seq_length: length of the trajectory (not counting initial idle frames, but does count skipped frames due to actions_per_pred)
         """     
 
         state, _ = self.env.reset()
@@ -249,8 +251,17 @@ class DTAgent(Agent):
             
             next_action = torch.argmax(next_action_pred).item()
             
-            next_state, reward, done, info, _ = self.env.step(next_action)
-            episode_reward += reward
+            cumulative_reward = 0
+            cumulative_state = state
+            for _ in range(actions_per_pred):
+                next_state, reward, done, info, _ = self.env.step(next_action)
+                cumulative_reward += reward
+                cumulative_state = np.maximum(cumulative_state, next_state)
+                if done:
+                    break
+            
+            episode_reward += cumulative_reward
+            next_state = cumulative_state
 
             if data_collection_obj is not None:
                 data_collection_obj.store_next_step(next_action, reward, next_state, done)
