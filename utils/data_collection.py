@@ -33,8 +33,6 @@ class DataCollector():
         Takes in parameters and updates the data collector's buffers.
         If the episode is done, will output values to outfile and reset buffers.
         """
-        print("Storing next step ...")
-        print(f'Checking done: {done}')
         self.state_buff.append(cv.imencode('.png', next_state)[1].tobytes())
         self.reward_buff.append(reward)
         self.action_buff.append(action)
