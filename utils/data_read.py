@@ -57,7 +57,7 @@ class DataReader(Dataset):
         with h5py.File(read_file) as file:
             episodes = file.keys()
             if max_ep_load is None:
-                total_num_ep = total_num_ep
+                total_num_ep = len(episodes)
             else:
                 total_num_ep = min(max_ep_load, len(episodes))
 
