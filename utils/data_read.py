@@ -59,7 +59,7 @@ class DataReader(Dataset):
             if max_ep_load is None:
                 total_num_ep = total_num_ep
             else:
-                total_num_ep = max(max_ep_load, len(episodes))
+                total_num_ep = min(max_ep_load, len(episodes))
 
             # pick total_num_ep random episodes
             load_episodes = random.sample(episodes, total_num_ep)
