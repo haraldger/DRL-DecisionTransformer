@@ -9,7 +9,7 @@ import os
 from utils import experience_replay, epsilon_scheduler, constants
 from Agents import dt_agent, random_agent, dqn_agent
 from utils.data_collection import DataCollector
-from utils.data_transforms import image_transformation_crop_downscale_norm
+from utils.data_transforms import image_transformation_crop_downscale_norm, image_transformation_just_norm
 from torch.utils.data import Dataset, DataLoader
 from utils.data_read import DataReader
 
@@ -36,8 +36,10 @@ def run():
         print("Loading data...")
         reader = DataReader(
             config['input_trajectory_path'], 
-            transform=image_transformation_crop_downscale_norm, 
-            float_state=True, 
+            store_transform=image_transformation_crop_downscale_norm, 
+            store_float_state=False,
+            return_transformation=image_transformation_just_norm,
+            return_float_state=True, 
             k_last_iters=1024,
             verbose_freq=50,
             max_ep_load=config['data_trajectories']
