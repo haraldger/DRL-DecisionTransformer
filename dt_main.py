@@ -40,7 +40,7 @@ def run():
             float_state=True, 
             k_last_iters=1024,
             verbose_freq=50,
-            max_ep_load=10
+            max_ep_load=500
         )
 
         print("Starting training...")
