@@ -40,7 +40,7 @@ def run():
             float_state=True, 
             k_last_iters=1024,
             verbose_freq=50,
-            max_ep_load=500
+            max_ep_load=config['data_trajectories']
         )
 
         print("Starting training...")
@@ -70,6 +70,7 @@ def main():
 
     parser.add_argument('-lr', '--learning_rate', type=float, help='Learning rate')
     parser.add_argument('-l', '--load', type=str, default="None", help='Load model. Provide name of model file, without extension or folder')
+    parser.add_argument('-dt', '--data_trajectories', type=int, default=10000, help='Number of trajectories loaded from file.')
 
     args = parser.parse_args()
 
@@ -86,6 +87,7 @@ def main():
     config['load'] = args.load
     config['dump_frequency'] = args.dump_frequency
     config['output'] = args.output
+    config['data_trajectories'] = args.data_trajectories
 
     if args.print_frequency is not None:
         config['print_frequency'] = args.print_frequency
