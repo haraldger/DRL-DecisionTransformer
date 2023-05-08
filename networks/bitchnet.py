@@ -65,7 +65,7 @@ class Bitchnet(nn.Module):
 
         # Linear output layer
         self.flatten = nn.Flatten()
-        self.linear = nn.Linear(15360, output_dim)
+        self.linear = nn.Linear(2048, output_dim)
 
     def forward(self, x):
         with profile(use_cuda=True, profile_memory=True, record_shapes=True) as b_prof:
@@ -110,7 +110,7 @@ class Bitchnet(nn.Module):
 # Tests
 
 def test_bitchnet_forward():
-    x = torch.randn(64, 3, 210, 160)    # Batch size 64, 3 channels, 210x160 pixels
+    x = torch.randn(64, 3, 84, 84)    # Batch size 64, 3 channels, 84x84 pixels
     model = Bitchnet(3)
     y = model(x)
     assert y.shape == (64, 768), f"Bad shape: {y.shape}"
@@ -118,7 +118,7 @@ def test_bitchnet_forward():
     print("Test passed!")
 
 def test_large_bitchnet_forward():
-    x = torch.randn(1000, 3, 210, 160)    # Batch size 64, 3 channels, 210x160 pixels
+    x = torch.randn(1000, 3, 84, 84)    # Batch size 64, 3 channels, 84x84 pixels
     model = Bitchnet(3)
     y = model(x)
     assert y.shape == (1000, 768), f"Bad shape: {y.shape}"

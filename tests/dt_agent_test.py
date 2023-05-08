@@ -5,7 +5,7 @@ from Agents.dt_agent import DTAgent
 from torch.utils.data import Dataset, DataLoader
 from utils.data_read import DataReader
 from utils.constants import load
-from utils.data_load_transform import image_transformation, image_transformation_no_norm, image_transformation_just_norm
+from utils.data_load_transform import image_transformation, image_transformation_no_norm, image_transformation_just_norm, image_transformation_crop_downscale_norm
 
 def test_forward_pass(config):
     env = gym.make('ALE/MsPacman-v5')
@@ -17,7 +17,8 @@ def test_forward_pass(config):
 
     # expects state to be float normalized form
     channels = 1
-    state_seq = torch.rand(batch_size, seq_length, channels, 210, 160).float()
+    # state_seq = torch.rand(batch_size, seq_length, channels, 210, 160).float()
+    state_seq = torch.rand(batch_size, seq_length, channels, 84, 84).float()
     action_seq = torch.randint(high=9, size=(batch_size, seq_length, 1))
     ret_to_go_seq = torch.tensor([10000,9998]).float().reshape(batch_size, seq_length, 1)
     timestep_seq = torch.tensor([0,1]).reshape(batch_size, seq_length, 1)
@@ -30,7 +31,7 @@ def test_traj(config):
     env = gym.make('ALE/MsPacman-v5')
     dt_model = DTAgent(env, config)
 
-    reward, seq_length = dt_model.run_evaluation_traj(data_transformation=image_transformation, float_state=True)
+    reward, seq_length = dt_model.run_evaluation_traj(data_transformation=image_transformation_crop_downscale_norm, float_state=True)
     
     print("reward: ", reward)
     print("seq_length: ", seq_length)
@@ -43,7 +44,8 @@ def test_train(config):
     env = gym.make('ALE/MsPacman-v5')
     dt_model = DTAgent(env, config)
 
-    reader = DataReader("test_traj_long.h5", transform=image_transformation, float_state=True, k_last_iters=1024)
+    # reader = DataReader("test_traj_long.h5", transform=image_transformation, float_state=True, k_last_iters=1024)
+    reader = DataReader("test_traj_long.h5", transform=image_transformation_crop_downscale_norm, float_state=True, k_last_iters=1024)
     # reader = DataReader("test_traj_long.h5", transform=image_transformation_just_norm, float_state=True, k_last_iters=32)
 
     dt_model.train(

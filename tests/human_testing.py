@@ -1,4 +1,6 @@
 import gym
+import matplotlib as plt
+import cv2 as cv
 
 # create the MsPacman-v0 environment
 env = gym.make('ALE/MsPacman-v5', render_mode='human')
@@ -8,6 +10,19 @@ obs = env.reset()
 
 # display the game screen
 env.render()
+
+inactive_frams = 65
+for _ in range(inactive_frams):
+    state, reward, done, info, _ = env.step(0)
+
+# display the game screen
+new_state = state[:-38,:,:]
+print(new_state.shape)
+cv.imshow("image v1", new_state)
+new_state = cv.resize(new_state, (84,84), interpolation=cv.INTER_CUBIC)
+print(new_state.shape)
+cv.imshow("image v2", new_state)
+cv.waitKey()
 
 # play the game manually using keyboard inputs
 done = False
