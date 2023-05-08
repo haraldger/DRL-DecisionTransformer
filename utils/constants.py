@@ -10,7 +10,7 @@ DECAY_FRAMES = 1E6                      # Number of frames after which to decay 
 DECAY_MODE = 'linear'                   # Mode of operation for decay. Single will perform a single decay after decay_frames to set epsilon to final_epsilon. Multiple will decay epsilon by decay_rate.
 DECAY_RATE = 0.99                        # The rate at which epsilon decays. E.g., if 0.1, epsilon will be divided by 10 after every decay_frames number of frames, until it is less than or equal to final_epsilon. Useless if decay_mode == 'single' or 'linear'.
 SECOND_DECAY = False                     # Whether to perform a second decay after DECAY_FRAMES
-LEARNING_RATE = 0.00025             # Learning rate for DQN
+LEARNING_RATE = 0.000001             # Learning rate for DQN
 GAMMA = 0.99                            # Discount factor for future rewards
 DQN_NETWORK = 'large'                # Type of DQN network to use. Options are 'vanilla' and 'large'
 DQN_UPDATE_FREQUENCY = 4                # Number of actions taken between successive SGD updates

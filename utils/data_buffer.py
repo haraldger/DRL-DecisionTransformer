@@ -43,6 +43,7 @@ class DataBuffer:
         if self.episode_reward < self.threshold:
             self.reset()
         else:
+            print("Writing trajectory to data collector.")
             self.data_collector.set_init_state(self.inital_state)
             for data_pair in self.data_pairs:
                 self.data_collector.store_next_step(*data_pair)
