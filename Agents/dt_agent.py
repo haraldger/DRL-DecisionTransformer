@@ -105,7 +105,7 @@ class DTAgent(Agent):
                 if self.save and batch_idx % self.model_save_freq == (self.model_save_freq-1):
                     save_name = time.strftime("%Y%m%d-%H%M%S")
                     save_name += '_episodes_' + str(batch_idx)
-                    torch.save(self.model.state_dict(), self.config['model_save_path_dt'])
+                    torch.save(self.model.state_dict(), "results/" + save_name + '.pt')
 
                     # Save performance graph
                     plt.plot(range(len(training_loss)), training_loss)
@@ -134,7 +134,7 @@ class DTAgent(Agent):
         if self.save:
             save_name = time.strftime("%Y%m%d-%H%M%S")
             save_name += '_episodes_' + str(batch_idx)
-            torch.save(self.model.state_dict(), self.config['model_save_path_dt'])
+            torch.save(self.model.state_dict(), "results/" + save_name + '.pt')
 
             # Save performance graph
             plt.plot(range(len(training_loss)), training_loss)
