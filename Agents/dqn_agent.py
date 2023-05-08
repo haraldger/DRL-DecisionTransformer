@@ -110,6 +110,12 @@ class DQNAgent(Agent):
         if self.iterations % self.config['dqn_target_update_frequency'] == 0:   # Update target network
             self.target_net.load_state_dict(self.policy_net.state_dict())
 
+        # Second decay, slower than first and decays learning rate
+        if self.config['second_decay'] and self.iterations == self.config['decay_frames']:
+            self.scheduler = epsilon_scheduler.EpsilonScheduler(initial_epsilon=self.config['final_epsilon'], final_epsilon=0, decay_frames=self.config['decay_frames'], decay_mode=self.config['decay_mode'], decay_rate=self.config['decay_rate'], start_frames=0)
+            for param_group in self.optimizer.param_groups:
+                param_group['lr'] = self.config['learning_rate'] / 10
+
         self.scheduler.step()
         self.iterations += 1
 
