@@ -154,10 +154,10 @@ class DTAgent(Agent):
         else:
             state = torch.from_numpy(state).permute(2,0,1).unsqueeze(0)
 
-        _, z, y, x = state.shape
-
         if data_transformation is not None:
             state = data_transformation(state)
+
+        _, z, y, x = state.shape
 
         # Create start token (using nop action)
         # Note: use of deque will ensure that we keep the most recent elements (only traj_mem_size)
