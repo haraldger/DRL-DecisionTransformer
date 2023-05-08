@@ -34,7 +34,13 @@ def run():
         print("Evaluation frequency: ", config['evaluation_frequency_dt'])
 
         print("Loading data...")
-        reader = DataReader(config['input_trajectory_path'], transform=image_transformation_crop_downscale_norm, float_state=True, k_last_iters=1024)
+        reader = DataReader(
+            config['input_trajectory_path'], 
+            transform=image_transformation_crop_downscale_norm, 
+            float_state=True, 
+            k_last_iters=1024,
+            verbose_freq=50
+        )
 
         print("Starting training...")
         # Training mode
