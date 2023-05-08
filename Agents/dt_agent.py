@@ -182,6 +182,7 @@ class DTAgent(Agent):
                 next_action_pred = self.predict_next_action(state_seq_torch, action_seq_torch, return_to_go_seq_torch, timestep_seq_torch)
             
             next_action = torch.argmax(next_action_pred)
+            print("taking action: ", next_action)
             
             next_state, reward, done, info, _ = self.env.step(next_action)
 
