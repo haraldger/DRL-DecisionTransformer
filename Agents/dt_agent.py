@@ -113,7 +113,7 @@ class DTAgent(Agent):
                     plt.xlabel('Training Batches')
                     plt.ylabel('Training loss')
                     plt.ylim(ymin=0, ymax=4)  
-                    plt.savefig('results/mean_rewards_dt.png')
+                    plt.savefig('results/training_loss_dt.png')
 
                 if batch_idx % self.eval_freq == (self.eval_freq-1):
                     # Evaluate model
