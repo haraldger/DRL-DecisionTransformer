@@ -113,7 +113,7 @@ class DTAgent(Agent):
                     plt.ylabel('Mean running loss')
                     plt.savefig('results/mean_rewards_dt.png')
 
-                if batch_idx % self.eval_freq == 0 and batch_idx != 0:
+                if batch_idx % self.eval_freq == (self.eval_freq-1):
                     # Evaluate model
                     self.model.eval()
                     evaluation_rewards = []
