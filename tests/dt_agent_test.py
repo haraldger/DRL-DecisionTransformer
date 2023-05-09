@@ -5,7 +5,7 @@ from Agents.dt_agent import DTAgent
 from torch.utils.data import Dataset, DataLoader
 from utils.data_read import DataReader
 from utils.constants import load
-from utils.data_transforms import image_transformation, image_transformation_no_norm, image_transformation_just_norm, image_transformation_crop_downscale_norm, image_transformation_just_norm, image_transformation_crop_downscale, image_transformation_grayscale_crop_downscale_norm, image_transformation_grayscale_crop_downscale
+from utils.data_transforms import image_transformation, image_transformation_no_norm, image_transformation_just_norm, image_transformation_just_norm, image_transformation_crop_downscale, image_transformation_grayscale_crop_downscale_norm, image_transformation_grayscale_crop_downscale
 
 def test_forward_pass(config):
     env = gym.make('ALE/MsPacman-v5')
