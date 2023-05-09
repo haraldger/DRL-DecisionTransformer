@@ -110,8 +110,8 @@ class DTAgent(Agent):
                     # Save performance graph
                     plt.figure()
                     plt.plot(range(len(training_loss)), training_loss)
-                    plt.xlabel('Batches')
-                    plt.ylabel('Mean running loss')
+                    plt.xlabel('Training Batches')
+                    plt.ylabel('Training loss')
                     plt.ylim(ymin=0, ymax=4)  
                     plt.savefig('results/mean_rewards_dt.png')
 
@@ -128,8 +128,8 @@ class DTAgent(Agent):
                     self.model.train()
 
                     plt.figure()
-                    plt.plot(range(len(mean_evaluation_rewards)), mean_evaluation_rewards)
-                    plt.xlabel('Episodes')
+                    plt.plot(range(0, len(mean_evaluation_rewards)*self.eval_freq, self.eval_freq), mean_evaluation_rewards)
+                    plt.xlabel('Training Batches')
                     plt.ylabel('Mean evaluation reward')
                     plt.savefig('results/mean_evaluation_rewards_dt.png')
 
