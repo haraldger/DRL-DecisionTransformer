@@ -108,6 +108,7 @@ class DTAgent(Agent):
                     torch.save(self.model.state_dict(), "results/" + save_name + '.pt')
 
                     # Save performance graph
+                    plt.figure(111)
                     plt.plot(range(len(training_loss)), training_loss)
                     plt.xlabel('Batches')
                     plt.ylabel('Mean running loss')
@@ -125,6 +126,7 @@ class DTAgent(Agent):
                     print('Evaluation rewards: ', evaluation_rewards, ' Mean: ', mean_eval_reward)
                     self.model.train()
 
+                    plt.figure(112)
                     plt.plot(range(len(mean_evaluation_rewards)), mean_evaluation_rewards)
                     plt.xlabel('Episodes')
                     plt.ylabel('Mean evaluation reward')
