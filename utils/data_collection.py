@@ -47,6 +47,7 @@ class DataCollector():
             # Check if we should write to file, or just write to buffer
             eps_in_buffer = self.write_buffer.keys()
             if len(eps_in_buffer) == (self.episodes_per_write-1):
+                print("Writing to file ...")
                 # Write data into the outfile (both this episode and buffer episodes)
                 # This will be in pairs of (state, action, reward, next_state, reward_to_go, done)
                 
@@ -84,6 +85,7 @@ class DataCollector():
                 self.write_buffer = {}
 
             else:
+                print("Adding to buffer ...")
                 # Write data to write buffer
                 done_arr = np.full((num_iterations), False)
                 done_arr[-1] = True
