@@ -6,14 +6,16 @@ DIMENSIONS = (210, 160, 3)              # Dimensions of state space as returned 
 INITIAL_EPSILON = 1.0                   # Initial value of epsilon in epsilon-greedy exploration
 FINAL_EPSILON = 0.1                    # Final value of epsilon in epsilon-greedy exploration
 INITIAL_EXPLORATION = 50000             # Number of frames to perform random actions before starting training
-DECAY_FRAMES = 2E6                      # Number of frames after which to decay epsilon
+DECAY_FRAMES = 1E6                      # Number of frames after which to decay epsilon
 DECAY_MODE = 'linear'                   # Mode of operation for decay. Single will perform a single decay after decay_frames to set epsilon to final_epsilon. Multiple will decay epsilon by decay_rate.
 DECAY_RATE = 0.99                        # The rate at which epsilon decays. E.g., if 0.1, epsilon will be divided by 10 after every decay_frames number of frames, until it is less than or equal to final_epsilon. Useless if decay_mode == 'single' or 'linear'.
+SECOND_DECAY = True                     # Whether to perform a second decay after DECAY_FRAMES
 LEARNING_RATE = 0.00025             # Learning rate for DQN
 GAMMA = 0.99                            # Discount factor for future rewards
+DQN_NETWORK = 'large'                # Type of DQN network to use. Options are 'vanilla' and 'large'
 DQN_UPDATE_FREQUENCY = 4                # Number of actions taken between successive SGD updates
 DQN_TARGET_UPDATE_FREQUENCY = 40000      # Number of actions taken between successive target network updates
-BATCH_SIZE = 32                         # Batch size for Optimizer
+BATCH_SIZE = 64                         # Batch size for Optimizer
 MAX_EPISODE_LENGTH = 10000              # Maximum number of frames in an episode
 
 
@@ -37,8 +39,10 @@ def load():
         'decay_frames': DECAY_FRAMES,
         'decay_mode': DECAY_MODE,
         'decay_rate': DECAY_RATE,
+        'second_decay': SECOND_DECAY,
         'learning_rate': LEARNING_RATE,
         'gamma': GAMMA,
+        'dqn_network': DQN_NETWORK,
         'dqn_update_frequency': DQN_UPDATE_FREQUENCY,
         'dqn_target_update_frequency': DQN_TARGET_UPDATE_FREQUENCY,
         'batch_size': BATCH_SIZE,

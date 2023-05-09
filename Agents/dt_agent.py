@@ -304,6 +304,6 @@ class DTAgent(Agent):
 
             seq_length += 1
             state = next_state
-        
+
         return episode_reward, seq_length-1
             

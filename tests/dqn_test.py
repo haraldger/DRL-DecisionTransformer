@@ -16,6 +16,7 @@ def run():
     inactive_frames = 65
 
     config = constants.load()
+    config['initial_exploration'] = 0
 
     replay_buffer = experience_replay.ReplayBuffer(100)
     scheduler = epsilon_scheduler.EpsilonScheduler()
