@@ -108,10 +108,11 @@ class DTAgent(Agent):
                     torch.save(self.model.state_dict(), "results/" + save_name + '.pt')
 
                     # Save performance graph
-                    plt.figure(111)
+                    plt.figure()
                     plt.plot(range(len(training_loss)), training_loss)
                     plt.xlabel('Batches')
                     plt.ylabel('Mean running loss')
+                    plt.ylim(ymin=0, ymax=4)  
                     plt.savefig('results/mean_rewards_dt.png')
 
                 if batch_idx % self.eval_freq == (self.eval_freq-1):
@@ -126,7 +127,7 @@ class DTAgent(Agent):
                     print('Evaluation rewards: ', evaluation_rewards, ' Mean: ', mean_eval_reward)
                     self.model.train()
 
-                    plt.figure(112)
+                    plt.figure()
                     plt.plot(range(len(mean_evaluation_rewards)), mean_evaluation_rewards)
                     plt.xlabel('Episodes')
                     plt.ylabel('Mean evaluation reward')
