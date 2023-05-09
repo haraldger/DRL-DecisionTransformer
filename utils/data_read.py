@@ -10,7 +10,7 @@ import torch
 import cv2 as cv
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
-from utils.data_transforms import image_transformation, image_transformation_no_norm, image_transformation_crop_downscale_norm, image_transformation_crop_downscale, image_transformation_just_norm
+from utils.data_transforms import image_transformation, image_transformation_no_norm, image_transformation_crop_downscale, image_transformation_just_norm, image_transformation_grayscale_crop_downscale_norm, image_transformation_grayscale_crop_downscale
 
 class TrajectoryData:
     def __init__(self, init_state):
@@ -146,7 +146,7 @@ def run_tests():
 
     reader = DataReader(
         TEST_OUTPUT_FILENAME, 
-        store_transform=image_transformation_crop_downscale, 
+        store_transform=image_transformation_grayscale_crop_downscale, 
         store_float_state=False, 
         return_transformation=image_transformation_just_norm,
         return_float_state=True
