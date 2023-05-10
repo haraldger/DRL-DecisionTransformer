@@ -25,9 +25,13 @@ def run():
 
     dt_model = dt_agent.DTAgent(env, config)
 
-    if not config['train'] and config['dump_frequency'] is not None and config['load'] is not None:
-        data_collector = DataCollector(config['output'], config['dump_frequency'])
+    if not config['train'] and config['load'] is not None:
         # Evaluation mode
+        
+        if config['dump_frequency'] is not None:
+            data_collector = DataCollector(config['output'], config['dump_frequency'])
+        else:
+            data_collector = None
 
         # Load model
         dt_model.load(config['load'])
@@ -37,7 +41,11 @@ def run():
 
         evaluation_rewards = []
         for eval_idx in range(config['eval_trajectories']):
-            episode_reward, episode_seq_len = dt_agent.run_evaluation_traj(data_transformation=image_transformation_grayscale_crop_downscale_norm, float_state=True)
+            episode_reward, episode_seq_len = dt_agent.run_evaluation_traj(
+                data_transformation=image_transformation_grayscale_crop_downscale_norm, 
+                float_state=True,
+                data_collection_object=data_collector
+            )
             evaluation_rewards.append(episode_reward)
         mean_eval_reward = np.mean(evaluation_rewards)
         median_eval_reward = np.median(evaluation_rewards)
