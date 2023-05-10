@@ -83,7 +83,18 @@ class DTAgent(Agent):
         self.model.train()
 
         training_loss =  []
-        mean_evaluation_rewards = [0]
+        mean_evaluation_rewards = []
+        
+        # Evaluate at first iteration
+        self.model.eval()
+        evaluation_rewards = []
+        for eval_idx in range(5):
+            episode_reward, episode_seq_len = self.run_evaluation_traj(data_transformation=image_transformation_grayscale_crop_downscale_norm, float_state=True)
+            evaluation_rewards.append(episode_reward)
+        mean_eval_reward = np.mean(evaluation_rewards)
+        mean_evaluation_rewards.append(mean_eval_reward)
+        print('Evaluation rewards: ', evaluation_rewards, ' Mean: ', mean_eval_reward)
+        self.model.train()
 
         # Training offline with expert tracjectories
         optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
