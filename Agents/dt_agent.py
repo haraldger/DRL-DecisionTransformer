@@ -57,10 +57,20 @@ class DTAgent(Agent):
     
         self.model = self.model.to(self.device)
 
-    def cross_entropy_loss(self, action_preds, actions):
+    def cross_entropy_loss(self, action_preds, actions, epsilon=1e-8):
         # compute negative log-likelihood loss
-        return F.cross_entropy(action_preds, actions)
-    
+        # had an issue with functional library implementation so made my own
+        
+        # Convert y_true to one-hot encoding
+        y_onehot = torch.zeros(action_preds.size())
+        y_onehot.scatter_(1, actions.unsqueeze(1), 1)
+
+        # Compute loss
+        loss = -torch.sum(y_onehot * torch.log(action_preds+epsilon), dim=1).mean()
+
+        return loss
+
+
 
     def train(
             self, 
