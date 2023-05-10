@@ -60,6 +60,10 @@ def run():
         # Load and train a model
         dt_model.load(config['load'])
 
+    # make the results folder if it doesn't exist
+    if not os.path.exists("results"):
+        os.makedirs("results")
+
     # Train
     print("Save frequency: ", config['model_save_frequency_dt'])
     print("Evaluation frequency: ", config['evaluation_frequency_dt'])
