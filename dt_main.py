@@ -91,15 +91,13 @@ def main():
     config['dump_frequency'] = args.dump_frequency
     config['output'] = args.eval_output
     config['data_trajectories'] = args.data_trajectories
+    config['learning_rate'] = args.learning_rate
 
     if args.print_frequency is not None:
         config['print_frequency'] = args.print_frequency
 
     if args.evaluation_frequency is not None:
         config['evaluation_frequency'] = args.evaluation_frequency
-
-    if args.learning_rate is not None:
-        config['learning_rate'] = args.learning_rate
 
     print("Print frequency is: ", config['print_frequency'])
 
