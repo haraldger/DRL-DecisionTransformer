@@ -315,4 +315,6 @@ class DTAgent(Agent):
             state = next_state
 
         return episode_reward, seq_length-1
-            
+    
+    def load(self, name):
+        self.model.load_state_dict(torch.load(name))

@@ -9,7 +9,7 @@ import os
 from utils import experience_replay, epsilon_scheduler, constants
 from Agents import dt_agent, random_agent, dqn_agent
 from utils.data_collection import DataCollector
-from utils.data_transforms import image_transformation_just_norm, image_transformation_crop_downscale, image_transformation_grayscale_crop_downscale
+from utils.data_transforms import image_transformation_just_norm, image_transformation_grayscale_crop_downscale, image_transformation_grayscale_crop_downscale_norm
 from torch.utils.data import Dataset, DataLoader
 from utils.data_read import DataReader
 
@@ -23,39 +23,63 @@ def run():
     global agent
     global env
 
-    if not config['train'] and config['dump_frequency'] is not None:
+    dt_model = dt_agent.DTAgent(env, config)
+
+    if not config['train'] and config['dump_frequency'] is not None and config['load'] is not None:
         data_collector = DataCollector(config['output'], config['dump_frequency'])
         # Evaluation mode
 
-        print("TODO: Evaluation mode not yet implemented")
+        # Load model
+        dt_model.load(config['load'])
 
-    else:
-        print("Save frequency: ", config['model_save_frequency_dt'])
-        print("Evaluation frequency: ", config['evaluation_frequency_dt'])
-        print("Learning rate: ", config['learning_rate_dt'])
+        # Evaluate
+        dt_model.eval()
 
-        print("Loading data...")
-        reader = DataReader(
-            config['input_trajectory_path'], 
-            store_transform=image_transformation_grayscale_crop_downscale, 
-            store_float_state=False,
-            return_transformation=image_transformation_just_norm,
-            return_float_state=True, 
-            k_last_iters=1024,
-            verbose_freq=50,
-            max_ep_load=config['data_trajectories']
-        )
+        evaluation_rewards = []
+        for eval_idx in range(config['eval_trajectories']):
+            episode_reward, episode_seq_len = dt_agent.run_evaluation_traj(data_transformation=image_transformation_grayscale_crop_downscale_norm, float_state=True)
+            evaluation_rewards.append(episode_reward)
+        mean_eval_reward = np.mean(evaluation_rewards)
+        median_eval_reward = np.median(evaluation_rewards)
+        standard_deviation_eval_reward = np.std(evaluation_rewards)
 
-        print("Starting training...")
-        # Training mode
-        dt_model = dt_agent.DTAgent(env, config)
-        dt_model.train(
-            dataset=reader,
-            num_epochs=config['num_epochs'],
-            batch_size=1,
-            verbose=config['verbose'],
-            print_freq=config['print_frequency']
-        )
+        print("Mean evaluation reward: ", mean_eval_reward)
+        print("Median evaluation reward: ", median_eval_reward)
+        print("Standard deviation evaluation reward: ", standard_deviation_eval_reward)
+        
+        return      
+    elif config['train'] and config['load'] is not None:
+        # Load and train a model
+        dt_model.load(config['load'])
+
+    # Train
+    print("Save frequency: ", config['model_save_frequency_dt'])
+    print("Evaluation frequency: ", config['evaluation_frequency_dt'])
+    print("Learning rate: ", config['learning_rate_dt'])
+
+    print("Loading data...")
+    reader = DataReader(
+        config['input_trajectory_path'], 
+        store_transform=image_transformation_grayscale_crop_downscale, 
+        store_float_state=False,
+        return_transformation=image_transformation_just_norm,
+        return_float_state=True, 
+        k_last_iters=1024,
+        verbose_freq=50,
+        max_ep_load=config['data_trajectories']
+    )
+
+    print("Starting training...")
+    # Training mode
+    dt_model.train(
+        dataset=reader,
+        num_epochs=config['num_epochs'],
+        batch_size=1,
+        verbose=config['verbose'],
+        print_freq=config['print_frequency']
+    )
+
+    return 
 
 
 def main():
@@ -63,6 +87,7 @@ def main():
     parser = argparse.ArgumentParser(
         description='Playing MsPacman with Reinforcement Learning agents.')
     parser.add_argument('-t', '--train', action='store_true', help='Train the agent')
+    parser.add_argument('-et', '--eval_trajectories', type=int, default=100, help='Number of trajectories to evaluate (in evaluation mode)')
     parser.add_argument('-n', '--num_epochs', type=int, default=100000, help='Number of epochs to train')
     parser.add_argument('-v', '--verbose', action='store_true', help='Verbose mode')
     parser.add_argument('-pf', '--print_frequency', type=int, help='Frequency in episodes to print progress')
@@ -72,7 +97,7 @@ def main():
     parser.add_argument('--evaluation_frequency', type=int, help='Frequency in episodes to evaluate model')
 
     parser.add_argument('-lr', '--learning_rate', type=float, help='Learning rate')
-    parser.add_argument('-l', '--load', type=str, default="None", help='Load model. Provide name of model file, without extension or folder')
+    parser.add_argument('-l', '--load', type=str, help='Load model. Provide name of model file, with extension and folder')
     parser.add_argument('-dt', '--data_trajectories', type=int, default=10000, help='Number of trajectories loaded from file.')
 
     args = parser.parse_args()
@@ -91,6 +116,7 @@ def main():
     config['dump_frequency'] = args.dump_frequency
     config['output'] = args.eval_output
     config['data_trajectories'] = args.data_trajectories
+    config['eval_trajectories'] = args.eval_trajectories
 
     if args.print_frequency is not None:
         config['print_frequency'] = args.print_frequency
