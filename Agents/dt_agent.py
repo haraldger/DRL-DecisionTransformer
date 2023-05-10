@@ -62,7 +62,7 @@ class DTAgent(Agent):
         # had an issue with functional library implementation so made my own
         
         # Convert y_true to one-hot encoding
-        y_onehot = torch.zeros(action_preds.size())
+        y_onehot = torch.zeros(action_preds.size()).to(self.device)
         y_onehot.scatter_(1, actions.unsqueeze(1), 1)
 
         # Compute loss

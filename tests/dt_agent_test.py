@@ -74,14 +74,14 @@ def debug_loss(config):
 
     # fake output
     # two batches of seq_length 2
-    output = torch.zeros(2,2,9).float()
+    output = torch.zeros(2,2,9).float().to(dt_model.device)
     output[0,0,2] = 1.0
     output[0,1,3] = 1.0
     output[1,0,4] = 1.0
     output[1,1,5] = 1.0
 
     # fake target
-    labels = torch.zeros(2,2,1).long()
+    labels = torch.zeros(2,2,1).long().to(dt_model.device)
     labels[0,0] = 2
     labels[0,1] = 3
     labels[1,0] = 4
