@@ -99,7 +99,7 @@ def main():
         config['evaluation_frequency'] = args.evaluation_frequency
 
     if args.learning_rate is not None:
-        config['learning_rate'] = args.learning_rate
+        config['learning_rate_dt'] = args.learning_rate
 
     print("Print frequency is: ", config['print_frequency'])
 
