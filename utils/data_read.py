@@ -132,10 +132,11 @@ class DataReader(Dataset):
                 self.all_traj_data.append(traj_data)   
 
         # If debug print, print out some stats on the trajectory data
-        print("Average trjectory length: ", np.mean(trajectory_lengths))
-        print("Median trajectory length: ", np.median(trajectory_lengths))
-        print("Max trajectory length: ", np.max(trajectory_lengths))
-        print("Min trajectory length: ", np.min(trajectory_lengths))
+        if debug_print:
+            print("Average trjectory length: ", np.mean(trajectory_lengths))
+            print("Median trajectory length: ", np.median(trajectory_lengths))
+            print("Max trajectory length: ", np.max(trajectory_lengths))
+            print("Min trajectory length: ", np.min(trajectory_lengths))
 
     def __len__(self):
         return len(self.all_traj_data)
