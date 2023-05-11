@@ -69,10 +69,10 @@ class DataReader(Dataset):
 
         # If a k_first_iters was given, use that instead
         self.k_first_iters = k_first_iters
-        self.use_first_k = False
+        self.use_first_k = True
         if self.k_first_iters is not None:
-            self.user_first_k = True
-    
+            self.use_first_k = True
+
         # If passed, will use transformation on the state
         self.store_transform = store_transform
         self.store_float_state = store_float_state
