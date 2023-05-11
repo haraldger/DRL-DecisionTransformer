@@ -16,6 +16,7 @@ from torch.autograd.profiler import profile, record_function
 import time
 import matplotlib.pyplot as plt
 import collections
+import cv2 as cv
 
 class DTAgent(Agent):
     def __init__(
@@ -306,6 +307,11 @@ class DTAgent(Agent):
             state_seq_torch = torch.stack(list(state_seq)).reshape(1, seq_length, 1, y, x)
             action_seq_torch = torch.tensor(action_seq).long().reshape(1, seq_length, 1)
             timestep_seq_torch = torch.tensor(timestep_seq).long().reshape(1, seq_length, 1)
+
+            # test show the first image
+            cv.imshow('test', state_seq_torch[0][0][0].numpy())
+            cv.waitKey()
+            sys.exit()
 
             with torch.no_grad():
                 next_action_pred = self.predict_next_action(state_seq_torch, action_seq_torch, return_to_go_seq_torch, timestep_seq_torch)
