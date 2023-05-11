@@ -294,7 +294,7 @@ class DTAgent(Agent):
         state_seq = deque(maxlen=traj_mem_size)
         state_seq.append(state)
         action_seq = deque(maxlen=traj_mem_size)
-        action_seq.append(0)
+        action_seq.append(8)
         timestep_seq = deque(maxlen=traj_mem_size)
         timestep_seq.append(0)
 
@@ -307,9 +307,6 @@ class DTAgent(Agent):
             state_seq_torch = torch.stack(list(state_seq)).reshape(1, reshape_seq_len, 1, y, x)
             action_seq_torch = torch.tensor(action_seq).long().reshape(1, reshape_seq_len, 1)
             timestep_seq_torch = torch.tensor(timestep_seq).long().reshape(1, reshape_seq_len, 1)
-
-            plt.imsave('test.png', state_seq_torch[0,0,0].numpy())
-            sys.exit()
 
             with torch.no_grad():
                 next_action_pred = self.predict_next_action(state_seq_torch, action_seq_torch, return_to_go_seq_torch, timestep_seq_torch)
