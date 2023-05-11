@@ -317,6 +317,9 @@ class DTAgent(Agent):
             # Only want the last element of the sequence
             next_action_pred = next_action_pred[-1]
 
+            # TODO: Remove; setting action 0 to 0, so it picks another action
+            next_action_pred[0] = 0
+
             if debug_print_freq is not None and seq_length % debug_print_freq == 0:
                 print(next_action_pred)
             
