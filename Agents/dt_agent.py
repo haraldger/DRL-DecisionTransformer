@@ -66,9 +66,13 @@ class DTAgent(Agent):
         y_onehot = torch.zeros(action_preds.size()).to(self.device)
         y_onehot.scatter_(1, actions.unsqueeze(1), 1)
 
+        # Compute loss
+        loss = -torch.sum(y_onehot * torch.log(action_preds+epsilon), dim=1).mean()
+
         if debug_print:
             with open("debug.txt", "a") as f:
                 f.write("Iteration: " + str(counter) + "\n")
+                f.write("Loss: " + str(loss))
                 f.write("Action preds: \n")
                 np.savetxt(f, action_preds[:50].cpu().numpy())
                 f.write("Actions: \n")
@@ -77,8 +81,6 @@ class DTAgent(Agent):
                 np.savetxt(f, y_onehot[:50].cpu().numpy())
                 f.write("\n\n\n")
 
-        # Compute loss
-        loss = -torch.sum(y_onehot * torch.log(action_preds+epsilon), dim=1).mean()
 
         return loss
     
