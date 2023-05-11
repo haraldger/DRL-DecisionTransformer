@@ -43,7 +43,7 @@ image_transformation_crop_downscale = torch.nn.Sequential(
     transforms.Resize((84,84), interpolation=Image.BICUBIC),
 )
 
-class LambdaModule(nn.Module):
+class LambdaModule(torch.nn.Module):
     def __init__(self, lambd):
         super().__init__()
         self.lambd = lambd
