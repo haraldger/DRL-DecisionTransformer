@@ -239,8 +239,8 @@ class DTAgent(Agent):
     def run_evaluation_traj(
             self, 
             actions_per_pred=3,
-            target_reward=1500, 
-            traj_mem_size=1000, 
+            target_reward=600, 
+            traj_mem_size=200, 
             data_collection_obj=None, 
             data_transformation=None, 
             float_state=False,
@@ -311,7 +311,6 @@ class DTAgent(Agent):
                 next_action_pred = self.predict_next_action(state_seq_torch, action_seq_torch, return_to_go_seq_torch, timestep_seq_torch)
             
             if debug_print_freq is not None and seq_length % debug_print_freq == 0:
-                print(next_action_pred)
                 print(next_action_pred.shape)
 
             # Only one batch, so take the first element
