@@ -141,12 +141,11 @@ class DTAgent(Agent):
 
                 loss.backward()
                 optimizer.step()
+                training_loss.append(loss.item())
 
                 if verbose and batch_idx % print_freq == (print_freq-1):
                     print('Epoch [{}/{}], Batch [{}/{}], Loss: {:.4f}'.format(
                     epoch+1, num_epochs, batch_idx+1, len(train_loader), loss.item()))
-
-                training_loss.append(loss.item())
 
                 del states, actions, returns_to_go, timesteps, a_preds
 
@@ -183,8 +182,6 @@ class DTAgent(Agent):
                     plt.ylabel('Mean evaluation reward')
                     plt.savefig('results/mean_evaluation_rewards_dt.png')
 
-                    # TODO:remove
-                    sys.exit()
 
         # Save at the end of training
         if self.save:
@@ -240,7 +237,7 @@ class DTAgent(Agent):
     def run_evaluation_traj(
             self, 
             actions_per_pred=3,
-            target_reward=600, 
+            target_reward=300, 
             traj_mem_size=200, 
             data_collection_obj=None, 
             data_transformation=None, 

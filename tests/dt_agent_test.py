@@ -5,7 +5,7 @@ from Agents.dt_agent import DTAgent
 from torch.utils.data import Dataset, DataLoader
 from utils.data_read import DataReader
 from utils.constants import load
-from utils.data_transforms import image_transformation, image_transformation_no_norm, image_transformation_just_norm, image_transformation_just_norm, image_transformation_crop_downscale, image_transformation_grayscale_crop_downscale_norm, image_transformation_grayscale_crop_downscale
+from utils.data_transforms import image_transformation_grayscale_crop_downscale_v2, image_transformation_just_norm, image_transformation_just_norm, image_transformation_grayscale_crop_downscale_norm_v2
 import sys
 
 def test_forward_pass(config):
@@ -32,7 +32,7 @@ def test_traj(config):
     env = gym.make('ALE/MsPacman-v5')
     dt_model = DTAgent(env, config)
 
-    reward, seq_length = dt_model.run_evaluation_traj(data_transformation=image_transformation_grayscale_crop_downscale_norm, float_state=True, debug_print_freq=50)
+    reward, seq_length = dt_model.run_evaluation_traj(data_transformation=image_transformation_grayscale_crop_downscale_norm_v2, float_state=True, debug_print_freq=50)
 
     print("reward: ", reward)
     print("seq_length: ", seq_length)
@@ -52,11 +52,11 @@ def test_train(config):
     # reader = DataReader("test_traj_long.h5", transform=image_transformation_just_norm, float_state=True, k_last_iters=32)
     reader = DataReader(
         "test_traj_long.h5", 
-        store_transform=image_transformation_grayscale_crop_downscale, 
+        store_transform=image_transformation_grayscale_crop_downscale_v2, 
         store_float_state=False,
         return_transformation=image_transformation_just_norm,
         return_float_state=True,
-        k_last_iters=1024)
+        k_last_iters=200)
 
     dt_model.train(
         dataset=reader,
