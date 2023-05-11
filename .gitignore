@@ -284,4 +284,7 @@ $RECYCLE.BIN/
 # PyTorch checkpoint files
 *.pt 
 
+# tar.gz files
+*.tar.gz
+
 # End of https://www.toptal.com/developers/gitignore/api/venv,git,python,visualstudiocode,macos,windows
