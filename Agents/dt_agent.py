@@ -277,11 +277,17 @@ class DTAgent(Agent):
             with torch.no_grad():
                 next_action_pred = self.predict_next_action(state_seq_torch, action_seq_torch, return_to_go_seq_torch, timestep_seq_torch)
             
+            if debug_print_freq is not None and seq_length % debug_print_freq == 0:
+                print(next_action_pred.shape)
+
             # Only one batch, so take the first element
             next_action_pred = next_action_pred[0]
-
+            
             # Only want the last element of the sequence
             next_action_pred = next_action_pred[-1]
+
+            if debug_print_freq is not None and seq_length % debug_print_freq == 0:
+                print(next_action_pred)
             
             next_action = torch.argmax(next_action_pred).item()
             
