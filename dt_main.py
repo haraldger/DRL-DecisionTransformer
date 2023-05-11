@@ -37,7 +37,7 @@ def run():
         dt_model.load(config['load'])
 
         # Evaluate
-        dt_model.eval()
+        dt_model.model.eval()
 
         evaluation_rewards = []
         for eval_idx in range(config['eval_trajectories']):
