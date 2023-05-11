@@ -294,7 +294,7 @@ class DTAgent(Agent):
         state_seq = deque(maxlen=traj_mem_size)
         state_seq.append(state)
         action_seq = deque(maxlen=traj_mem_size)
-        action_seq.append(8)
+        action_seq.append(0)
         timestep_seq = deque(maxlen=traj_mem_size)
         timestep_seq.append(0)
 
