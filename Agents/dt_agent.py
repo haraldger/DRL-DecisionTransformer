@@ -15,6 +15,7 @@ from collections import deque
 from torch.autograd.profiler import profile, record_function
 import time
 import matplotlib.pyplot as plt
+import collections
 
 class DTAgent(Agent):
     def __init__(
@@ -57,13 +58,21 @@ class DTAgent(Agent):
     
         self.model = self.model.to(self.device)
 
-    def cross_entropy_loss(self, action_preds, actions, epsilon=1e-8):
+    def cross_entropy_loss(self, action_preds, actions, epsilon=1e-8, debug_print=False, counter=None):
         # compute negative log-likelihood loss
         # had an issue with functional library implementation so made my own
-        
+
         # Convert y_true to one-hot encoding
         y_onehot = torch.zeros(action_preds.size()).to(self.device)
         y_onehot.scatter_(1, actions.unsqueeze(1), 1)
+
+        if debug_print:
+            with open("debug.txt", "a") as f:
+                f.write("Iteration: " + str(counter) + "\n")
+                f.write('Action preds: \n', action_preds[:50])
+                f.write('Actions: \n', actions[:50])
+                f.write('Y onehot: \n', y_onehot[:50])
+                f.write("\n\n\n")
 
         # Compute loss
         loss = -torch.sum(y_onehot * torch.log(action_preds+epsilon), dim=1).mean()
@@ -84,6 +93,8 @@ class DTAgent(Agent):
         training_loss =  []
         mean_evaluation_rewards = []
         
+        train_action_pred_freq_list = collections.Counter({i: 0 for i in range(9)})
+
         # Evaluate at first iteration
         self.model.eval()
         evaluation_rewards = []
@@ -110,7 +121,12 @@ class DTAgent(Agent):
 
                 optimizer.zero_grad()
                 a_preds = self.model.forward(states, actions, returns_to_go, timesteps).reshape(-1, self.act_dim)
-                loss = self.cross_entropy_loss(a_preds, actions.reshape(-1))
+                
+                # TODO: remove this debug code
+                a_pred_argmax = torch.argmax(a_preds, dim=1)
+                train_action_pred_freq_list.update(a_pred_argmax.tolist())
+                loss = self.cross_entropy_loss(a_preds, actions.reshape(-1), debug_print=(batch_idx%25==24), counter=batch_idx)
+
                 loss.backward()
                 optimizer.step()
 
@@ -135,6 +151,9 @@ class DTAgent(Agent):
                     plt.savefig('results/training_loss_dt.png')
 
                 if batch_idx % self.eval_freq == (self.eval_freq-1):
+                    # TODO: remove this debug code
+                    print('Action prediction frequency: ', train_action_pred_freq_list)
+
                     # Evaluate model
                     self.model.eval()
                     evaluation_rewards = []
