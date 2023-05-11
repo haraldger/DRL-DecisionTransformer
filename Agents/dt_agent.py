@@ -300,10 +300,12 @@ class DTAgent(Agent):
         seq_length = 1
 
         while not done:
-            return_to_go_seq_torch = torch.tensor(return_to_go_seq).float().reshape(1, seq_length, 1)
-            state_seq_torch = torch.stack(list(state_seq)).reshape(1, seq_length, 1, y, x)
-            action_seq_torch = torch.tensor(action_seq).long().reshape(1, seq_length, 1)
-            timestep_seq_torch = torch.tensor(timestep_seq).long().reshape(1, seq_length, 1)
+            reshape_seq_len = max(seq_length, traj_mem_size)
+
+            return_to_go_seq_torch = torch.tensor(return_to_go_seq).float().reshape(1, reshape_seq_len, 1)
+            state_seq_torch = torch.stack(list(state_seq)).reshape(1, reshape_seq_len, 1, y, x)
+            action_seq_torch = torch.tensor(action_seq).long().reshape(1, reshape_seq_len, 1)
+            timestep_seq_torch = torch.tensor(timestep_seq).long().reshape(1, reshape_seq_len, 1)
 
             with torch.no_grad():
                 next_action_pred = self.predict_next_action(state_seq_torch, action_seq_torch, return_to_go_seq_torch, timestep_seq_torch)
