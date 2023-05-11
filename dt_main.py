@@ -78,7 +78,7 @@ def run():
         store_float_state=False,
         return_transformation=image_transformation_just_norm,
         return_float_state=True, 
-        k_first_iters=1024,
+        k_first_iters=250,
         verbose_freq=50,
         max_ep_load=config['data_trajectories'],
         debug_print=True
