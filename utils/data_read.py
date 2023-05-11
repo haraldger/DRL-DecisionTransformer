@@ -149,16 +149,16 @@ class DataReader(Dataset):
             traj_pairs = traj_data.fetch_last_k(self.k_last_iters)
 
         # States already stored transformed, so just stack them and apply return transform
-        states = torch.stack([t[0] for t in traj_pairs])
+        next_states = torch.stack([t[3] for t in traj_pairs])
 
         if self.return_float_state:
-            states = states.float()
+            next_states = next_states.float()
 
         if self.return_transform is not None:
-            states = self.return_transform(states)
+            next_states = self.return_transform(next_states)
 
-        # DT model doesn't even use next_states, so just don't reutrn them 
-        # next_states = torch.tensor([t[3] for t in traj_pairs]).permute(0, 3, 1, 2).float() / 255.0
+        # DT model doesn't even use both next_states and states, so just don't reuturn one of them 
+        # next_states = torch.tensor([t[0] for t in traj_pairs]).permute(0, 3, 1, 2).float() / 255.0
         
         actions = torch.tensor([t[1] for t in traj_pairs]).short().unsqueeze(-1)
         rewards = torch.tensor([t[2] for t in traj_pairs]).short().unsqueeze(-1)
@@ -166,8 +166,10 @@ class DataReader(Dataset):
         timesteps = torch.tensor([t[5] for t in traj_pairs]).int().unsqueeze(-1)
         dones = torch.tensor([t[6] for t in traj_pairs]).float().unsqueeze(-1)        
         
-        return states, actions, rewards, rewards_to_go, timesteps, dones
-        # return states, actions, rewards, next_states, rewards_to_go, timesteps, dones
+        # Note: due to masking, changing current state return to next state 
+        # return states, actions, rewards, rewards_to_go, timesteps, dones
+        return next_states, actions, rewards, rewards_to_go, timesteps, dones
+
 
 
 def run_tests():
