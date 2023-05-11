@@ -69,8 +69,7 @@ class DTAgent(Agent):
         loss = -torch.sum(y_onehot * torch.log(action_preds+epsilon), dim=1).mean()
 
         return loss
-
-
+    
 
     def train(
             self, 

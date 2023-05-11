@@ -146,7 +146,9 @@ def main():
 
     if config['train']:
         config['save'] = True
-
+    else:
+        config['save'] = False
+        
     # Initialize environment
     global env 
     env = gym.make('ALE/MsPacman-v5')
