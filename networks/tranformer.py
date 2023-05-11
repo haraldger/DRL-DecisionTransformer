@@ -48,10 +48,6 @@ class AttentionHead(nn.Module):
         projections = self.w_attention(x)   # (bs x sql x edim) -> (bs x sql x nh*3*edim)
         projections = torch.split(projections, self.embedding_dim * self.num_heads, dim=-1)
 
-        print("1a: ", projections[0].shape)
-        print("1b: ", projections[1].shape)
-        print("1c: ", projections[2].shape)
-
         # Q, K, V is each (bs x sql x (nh * edim))
         Q, K, V = projections
 
@@ -60,33 +56,24 @@ class AttentionHead(nn.Module):
         K = K.contiguous().view((-1, self.num_heads, x.shape[1], self.embedding_dim))
         V = V.contiguous().view((-1, self.num_heads, x.shape[1], self.embedding_dim))
 
-        print("2: ", Q.shape)
-
         # Attention
         # (bs x nh x sql x edim) * (bs x nh x edim x sql) -> (bs x nh x sql x sql)
         compatibility = Q @ torch.transpose(K, -1, -2)
         scaled_compatibility = torch.divide(compatibility, math.sqrt(self.embedding_dim))
         
-        print("3: ", compatibility.shape)
-        print("3: ", scaled_compatibility.shape)
-
         if self.masked:
             mask = torch.ones_like(scaled_compatibility) * float('-inf')
-            mask = torch.triu(mask, 0)
+            mask = torch.triu(mask, 1)
             masked_compatibility = scaled_compatibility + mask
-            masked_compatibility[:,:,0,0] = 0.1
+            # masked_compatibility[:,:,0,0] = 0.1
             attention_scores = self.softmax(masked_compatibility)
         else:
             attention_scores = self.softmax(scaled_compatibility)
-
-        print("4: ", attention_scores.shape)
 
         # Output
         output = attention_scores @ V   # (bs x nh x sql x sql) * (bs x nh x sql x edim) -> (bs x nh x sql x edim)
         output = output.contiguous().view((-1, x.shape[1], self.num_heads * self.embedding_dim))
         output = self.w_output(output)
-
-        print("5: ", output.shape)
 
         return output
 
@@ -124,9 +111,7 @@ class GPTBlock(nn.Module):
 
     def forward(self, x):
         # Forward through the masked multi-head
-        print("0: ", x.shape)
         attn_out = self.attention_block.forward(x)
-        sys.exit()
 
         # Skip connection
         x = self.dropout(attn_out) + x
@@ -265,8 +250,8 @@ class DecisionTransformer(nn.Module):
         stacked_transformer_output = stacked_data.reshape(batch_size, seq_length, 3, self.embedding_dim).permute(0, 2, 1, 3)
 
         # # get predictions
-        # return_preds = self.predict_return(x[:,0])  # predict next return given state and action
-        # state_preds = self.predict_state(x[:,1])    # predict next state given state and action
-        action_preds = self.predict_action(stacked_transformer_output[:,2])  # predict next action given state
+        # return_preds = self.predict_return(x[:,2])  # predict next return given state and action
+        # state_preds = self.predict_state(x[:,2])    # predict next state given state and action
+        action_preds = self.predict_action(stacked_transformer_output[:,1])  # predict next action given state
 
         return action_preds
