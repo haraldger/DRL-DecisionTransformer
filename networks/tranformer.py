@@ -66,7 +66,6 @@ class AttentionHead(nn.Module):
             masked_compatibility = scaled_compatibility + mask
             masked_compatibility[:,:,0,0] = 0.1
             attention_scores = self.softmax(masked_compatibility)
-            raise NotImplementedError
         else:
             attention_scores = self.softmax(scaled_compatibility)
 
