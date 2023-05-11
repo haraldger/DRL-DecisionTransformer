@@ -74,11 +74,11 @@ class DTAgent(Agent):
                 f.write("Iteration: " + str(counter) + "\n")
                 f.write("Loss: " + str(loss))
                 f.write("Action preds: \n")
-                np.savetxt(f, action_preds[:50].cpu().numpy())
+                f.write(np.array2string(action_preds[:50].cpu().numpy()))
                 f.write("Actions: \n")
-                np.savetxt(f, actions[:50].cpu().numpy())
+                f.write(np.array2string(actions[:50].cpu().numpy()))
                 f.write("Y onehot: \n")
-                np.savetxt(f, y_onehot[:50].cpu().numpy())
+                f.write(np.array2string(y_onehot[:50].cpu().numpy()))
                 f.write("\n\n\n")
 
 
