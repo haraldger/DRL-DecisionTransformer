@@ -300,7 +300,7 @@ class DTAgent(Agent):
         seq_length = 1
 
         while not done:
-            reshape_seq_len = max(seq_length, traj_mem_size)
+            reshape_seq_len = min(seq_length, traj_mem_size)
 
             return_to_go_seq_torch = torch.tensor(return_to_go_seq).float().reshape(1, reshape_seq_len, 1)
             state_seq_torch = torch.stack(list(state_seq)).reshape(1, reshape_seq_len, 1, y, x)
