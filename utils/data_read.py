@@ -69,7 +69,7 @@ class DataReader(Dataset):
 
         # If a k_first_iters was given, use that instead
         self.k_first_iters = k_first_iters
-        self.use_first_k = True
+        self.use_first_k = False
         if self.k_first_iters is not None:
             self.use_first_k = True
 
