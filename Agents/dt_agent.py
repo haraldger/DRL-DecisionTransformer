@@ -58,7 +58,7 @@ class DTAgent(Agent):
     
         self.model = self.model.to(self.device)
 
-    def cross_entropy_loss(self, action_preds, actions, epsilon=1e-8, debug_print=False, counter=None):
+    def cross_entropy_loss(self, action_preds, actions, epsilon=1e-8, debug_print=False, print_batch_num=None):
         # compute negative log-likelihood loss
         # had an issue with functional library implementation so made my own
 
@@ -71,7 +71,7 @@ class DTAgent(Agent):
 
         if debug_print:
             with open("debug.txt", "a") as f:
-                f.write("Iteration: " + str(counter) + "\n")
+                f.write("Iteration: " + str(print_batch_num) + "\n")
                 f.write("Loss: " + str(loss.item()))
                 f.write("\n")
                 f.write("Action preds: \n")
@@ -94,7 +94,8 @@ class DTAgent(Agent):
             batch_size,
             num_epochs,
             verbose=False,
-            print_freq=5
+            print_freq=5,
+            debug_print_freq=None
     ):
         self.model.train()
 
@@ -130,10 +131,12 @@ class DTAgent(Agent):
                 optimizer.zero_grad()
                 a_preds = self.model.forward(states, actions, returns_to_go, timesteps).reshape(-1, self.act_dim)
                 
-                # TODO: remove this debug code
-                a_pred_argmax = torch.argmax(a_preds, dim=1)
-                train_action_pred_freq_list.update(a_pred_argmax.tolist())
-                loss = self.cross_entropy_loss(a_preds, actions.reshape(-1), debug_print=(batch_idx%100==99), counter=batch_idx)
+                if debug_print_freq is not None:
+                    a_pred_argmax = torch.argmax(a_preds, dim=1)
+                    train_action_pred_freq_list.update(a_pred_argmax.tolist())
+                    loss = self.cross_entropy_loss(a_preds, actions.reshape(-1), debug_print=(batch_idx%debug_print_freq==(debug_print_freq-1)), counter=batch_idx)
+                else:
+                    loss = self.cross_entropy_loss(a_preds, actions.reshape(-1))
 
                 loss.backward()
                 optimizer.step()
@@ -159,8 +162,8 @@ class DTAgent(Agent):
                     plt.savefig('results/training_loss_dt.png')
 
                 if batch_idx % self.eval_freq == (self.eval_freq-1):
-                    # TODO: remove this debug code
-                    print('Action prediction frequency: ', train_action_pred_freq_list)
+                    if debug_print_freq is not None:
+                        print('Action prediction frequency: ', train_action_pred_freq_list)
 
                     # Evaluate model
                     self.model.eval()
@@ -292,9 +295,9 @@ class DTAgent(Agent):
         state_seq = deque(maxlen=traj_mem_size)
         state_seq.append(state)
         action_seq = deque(maxlen=traj_mem_size)
-        action_seq.append(0)
+        action_seq.append(1)
         timestep_seq = deque(maxlen=traj_mem_size)
-        timestep_seq.append(0)
+        timestep_seq.append(1)
 
         seq_length = 1
 
