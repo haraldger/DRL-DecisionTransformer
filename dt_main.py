@@ -44,7 +44,8 @@ def run():
             episode_reward, episode_seq_len = dt_agent.run_evaluation_traj(
                 data_transformation=image_transformation_grayscale_crop_downscale_norm, 
                 float_state=True,
-                data_collection_object=data_collector
+                data_collection_object=data_collector,
+                debug_print_freq=config['print_freq']
             )
             evaluation_rewards.append(episode_reward)
         mean_eval_reward = np.mean(evaluation_rewards)
@@ -148,7 +149,7 @@ def main():
         config['save'] = True
     else:
         config['save'] = False
-        
+
     # Initialize environment
     global env 
     env = gym.make('ALE/MsPacman-v5')
