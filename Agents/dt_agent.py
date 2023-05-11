@@ -69,9 +69,12 @@ class DTAgent(Agent):
         if debug_print:
             with open("debug.txt", "a") as f:
                 f.write("Iteration: " + str(counter) + "\n")
-                f.write('Action preds: \n', action_preds[:50])
-                f.write('Actions: \n', actions[:50])
-                f.write('Y onehot: \n', y_onehot[:50])
+                f.write("Action preds: \n")
+                np.savetxt(f, action_preds[:50].cpu().numpy())
+                f.write("Actions: \n")
+                np.savetxt(f, actions[:50].cpu().numpy())
+                f.write("Y onehot: \n")
+                np.savetxt(f, y_onehot[:50].cpu().numpy())
                 f.write("\n\n\n")
 
         # Compute loss
@@ -125,7 +128,7 @@ class DTAgent(Agent):
                 # TODO: remove this debug code
                 a_pred_argmax = torch.argmax(a_preds, dim=1)
                 train_action_pred_freq_list.update(a_pred_argmax.tolist())
-                loss = self.cross_entropy_loss(a_preds, actions.reshape(-1), debug_print=(batch_idx%25==24), counter=batch_idx)
+                loss = self.cross_entropy_loss(a_preds, actions.reshape(-1), debug_print=(batch_idx%50==49), counter=batch_idx)
 
                 loss.backward()
                 optimizer.step()
