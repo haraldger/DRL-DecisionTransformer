@@ -45,7 +45,7 @@ def run():
                 data_transformation=image_transformation_grayscale_crop_downscale_norm, 
                 float_state=True,
                 data_collection_object=data_collector,
-                debug_print_freq=config['print_freq']
+                debug_print_freq=config['print_frequency']
             )
             evaluation_rewards.append(episode_reward)
         mean_eval_reward = np.mean(evaluation_rewards)
