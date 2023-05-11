@@ -171,6 +171,9 @@ class DTAgent(Agent):
                     plt.ylabel('Mean evaluation reward')
                     plt.savefig('results/mean_evaluation_rewards_dt.png')
 
+                    # TODO:remove
+                    sys.exit()
+
         # Save at the end of training
         if self.save:
             save_name = time.strftime("%Y%m%d-%H%M%S")
