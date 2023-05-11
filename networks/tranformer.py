@@ -62,7 +62,7 @@ class AttentionHead(nn.Module):
         
         if self.masked:
             mask = torch.ones_like(scaled_compatibility) * float('-inf')
-            mask = torch.triu(mask, 1)
+            mask = torch.triu(mask, 0)
             masked_compatibility = scaled_compatibility + mask
             attention_scores = self.softmax(masked_compatibility)
         else:
