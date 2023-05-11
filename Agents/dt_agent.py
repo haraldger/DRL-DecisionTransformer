@@ -309,8 +309,7 @@ class DTAgent(Agent):
             timestep_seq_torch = torch.tensor(timestep_seq).long().reshape(1, seq_length, 1)
 
             # test show the first image
-            cv.imshow('test', state_seq_torch[0][0][0].numpy())
-            cv.waitKey()
+            plt.imsave('test.png', state_seq_torch[0][0][0].numpy())
             sys.exit()
 
             with torch.no_grad():
