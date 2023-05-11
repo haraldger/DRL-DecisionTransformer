@@ -1,4 +1,5 @@
-import numpy 
+import numpy as np
+import sys 
 import math
 import torch
 from torch import nn 
@@ -47,6 +48,8 @@ class AttentionHead(nn.Module):
         projections = self.w_attention(x)   # (bs x sql x edim) -> (bs x sql x nh*3*edim)
         projections = torch.split(projections, self.embedding_dim * self.num_heads, dim=-1)
 
+        print("1: ", projections.shape)
+
         # Q, K, V is each (bs x sql x (nh * edim))
         Q, K, V = projections
 
@@ -55,11 +58,16 @@ class AttentionHead(nn.Module):
         K = K.contiguous().view((-1, self.num_heads, x.shape[1], self.embedding_dim))
         V = V.contiguous().view((-1, self.num_heads, x.shape[1], self.embedding_dim))
 
+        print("2: ", Q.shape)
+
         # Attention
         # (bs x nh x sql x edim) * (bs x nh x edim x sql) -> (bs x nh x sql x sql)
         compatibility = Q @ torch.transpose(K, -1, -2)
         scaled_compatibility = torch.divide(compatibility, math.sqrt(self.embedding_dim))
         
+        print("3: ", compatibility.shape)
+        print("3: ", scaled_compatibility.shape)
+
         if self.masked:
             mask = torch.ones_like(scaled_compatibility) * float('-inf')
             mask = torch.triu(mask, 0)
@@ -69,10 +77,14 @@ class AttentionHead(nn.Module):
         else:
             attention_scores = self.softmax(scaled_compatibility)
 
+        print("4: ", attention_scores.shape)
+
         # Output
         output = attention_scores @ V   # (bs x nh x sql x sql) * (bs x nh x sql x edim) -> (bs x nh x sql x edim)
         output = output.contiguous().view((-1, x.shape[1], self.num_heads * self.embedding_dim))
         output = self.w_output(output)
+
+        print("5: ", output.shape)
 
         return output
 
@@ -110,7 +122,9 @@ class GPTBlock(nn.Module):
 
     def forward(self, x):
         # Forward through the masked multi-head
+        print("0: ", x.shape)
         attn_out = self.attention_block.forward(x)
+        sys.exit()
 
         # Skip connection
         x = self.dropout(attn_out) + x
