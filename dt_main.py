@@ -44,7 +44,7 @@ def run():
             episode_reward, episode_seq_len = dt_model.run_evaluation_traj(
                 data_transformation=image_transformation_grayscale_crop_downscale_norm, 
                 float_state=True,
-                data_collection_object=data_collector,
+                data_collection_obj=data_collector,
                 debug_print_freq=config['print_frequency']
             )
             evaluation_rewards.append(episode_reward)
