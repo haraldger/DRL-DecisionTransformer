@@ -107,6 +107,7 @@ class DTAgent(Agent):
 
         # Evaluate at first iteration
         self.model.eval()
+        print("Evaluation at start of training...")
         evaluation_rewards = []
         for eval_idx in range(5):
             episode_reward, episode_seq_len = self.run_evaluation_traj(data_transformation=image_transformation_grayscale_crop_downscale_norm, float_state=True)
@@ -118,8 +119,7 @@ class DTAgent(Agent):
 
         # Training offline with expert tracjectories
         optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
-        # train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=4)
-        train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=4)
 
         for epoch in range(num_epochs):
             for batch_idx, (states, actions, rewards, returns_to_go, timesteps, dones) in enumerate(train_loader):
