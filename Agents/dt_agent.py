@@ -295,9 +295,9 @@ class DTAgent(Agent):
         state_seq = deque(maxlen=traj_mem_size)
         state_seq.append(state)
         action_seq = deque(maxlen=traj_mem_size)
-        action_seq.append(1)
+        action_seq.append(0)
         timestep_seq = deque(maxlen=traj_mem_size)
-        timestep_seq.append(1)
+        timestep_seq.append(0)
 
         seq_length = 1
 
@@ -311,6 +311,7 @@ class DTAgent(Agent):
                 next_action_pred = self.predict_next_action(state_seq_torch, action_seq_torch, return_to_go_seq_torch, timestep_seq_torch)
             
             if debug_print_freq is not None and seq_length % debug_print_freq == 0:
+                print(next_action_pred)
                 print(next_action_pred.shape)
 
             # Only one batch, so take the first element
