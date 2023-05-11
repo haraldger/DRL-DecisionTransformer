@@ -308,10 +308,6 @@ class DTAgent(Agent):
             action_seq_torch = torch.tensor(action_seq).long().reshape(1, seq_length, 1)
             timestep_seq_torch = torch.tensor(timestep_seq).long().reshape(1, seq_length, 1)
 
-            # test show the first image
-            plt.imsave('test.png', state_seq_torch[0][0][0].numpy())
-            sys.exit()
-
             with torch.no_grad():
                 next_action_pred = self.predict_next_action(state_seq_torch, action_seq_torch, return_to_go_seq_torch, timestep_seq_torch)
             
