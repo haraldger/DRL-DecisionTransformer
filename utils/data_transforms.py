@@ -43,10 +43,20 @@ image_transformation_crop_downscale = torch.nn.Sequential(
     transforms.Resize((84,84), interpolation=Image.BICUBIC),
 )
 
+class LambdaModule(nn.Module):
+    def __init__(self, lambd):
+        super().__init__()
+        self.lambd = lambd
+        
+    def forward(self, x):
+        return self.lambd(x)
+
+crop_bottom = LambdaModule(lambda x: x[:, :, :-38, :])
+
 image_transformation_grayscale_crop_downscale_norm_v2 = torch.nn.Sequential(
     # Crop bottom 34 pixels and resize to 84x84
     transforms.Grayscale(),
-    transforms.Lambda(lambda x: transforms.functional.crop(x, top=0, left=0, height=210-38, width=160)),
+    crop_bottom,
     transforms.Resize((84,84), interpolation=Image.BICUBIC),
     transforms.Normalize(0,255)
 )
