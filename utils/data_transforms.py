@@ -42,3 +42,10 @@ image_transformation_crop_downscale = torch.nn.Sequential(
     transforms.CenterCrop((210, 160 - 38)),
     transforms.Resize((84,84), interpolation=Image.BICUBIC),
 )
+
+image_transformation_grayscale_crop_downscale_norm_v2 = torch.nn.Sequential(
+    # Crop bottom 34 pixels and resize to 84x84
+    transforms.Grayscale().crop((0, 0, 160, 122)),
+    transforms.Resize((84,84), interpolation=Image.BICUBIC),
+    transforms.Normalize(0,255)
+)

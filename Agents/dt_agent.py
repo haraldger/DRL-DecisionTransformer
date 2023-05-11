@@ -10,7 +10,7 @@ from Agents.agent import Agent
 from networks.resnet import resnet34, resnet50 
 from networks.tranformer import DecisionTransformer
 import gym
-from utils.data_transforms import image_transformation, image_transformation_no_norm, image_transformation_grayscale_crop_downscale_norm
+from utils.data_transforms import image_transformation, image_transformation_no_norm, image_transformation_grayscale_crop_downscale_norm, image_transformation_grayscale_crop_downscale_norm_v2
 from collections import deque
 from torch.autograd.profiler import profile, record_function
 import time

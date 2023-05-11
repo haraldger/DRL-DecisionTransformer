@@ -9,7 +9,7 @@ import os
 from utils import experience_replay, epsilon_scheduler, constants
 from Agents import dt_agent, random_agent, dqn_agent
 from utils.data_collection import DataCollector
-from utils.data_transforms import image_transformation_just_norm, image_transformation_grayscale_crop_downscale, image_transformation_grayscale_crop_downscale_norm
+from utils.data_transforms import image_transformation_just_norm, image_transformation_grayscale_crop_downscale, image_transformation_grayscale_crop_downscale_norm, image_transformation_grayscale_crop_downscale_norm_v2
 from torch.utils.data import Dataset, DataLoader
 from utils.data_read import DataReader
 
@@ -42,7 +42,7 @@ def run():
         evaluation_rewards = []
         for eval_idx in range(config['eval_trajectories']):
             episode_reward, episode_seq_len = dt_model.run_evaluation_traj(
-                data_transformation=image_transformation_grayscale_crop_downscale_norm, 
+                data_transformation=image_transformation_grayscale_crop_downscale_norm_v2, 
                 float_state=True,
                 data_collection_obj=data_collector,
                 debug_print_freq=config['print_frequency']
