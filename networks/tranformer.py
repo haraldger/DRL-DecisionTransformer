@@ -48,7 +48,9 @@ class AttentionHead(nn.Module):
         projections = self.w_attention(x)   # (bs x sql x edim) -> (bs x sql x nh*3*edim)
         projections = torch.split(projections, self.embedding_dim * self.num_heads, dim=-1)
 
-        print("1: ", projections.shape)
+        print("1a: ", projections[0].shape)
+        print("1b: ", projections[1].shape)
+        print("1c: ", projections[2].shape)
 
         # Q, K, V is each (bs x sql x (nh * edim))
         Q, K, V = projections
