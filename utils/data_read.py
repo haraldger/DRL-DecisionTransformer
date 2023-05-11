@@ -36,6 +36,14 @@ class TrajectoryData:
             return self.data_pairs + ([self.data_pairs[-1]] * (k-self.num_iterations))
         else:
             return self.data_pairs[-k:]
+    
+    def fetch_first_k(self, k):
+        # Returns a list of the first k iterations
+        # If there are not k iterations, duplicate the last one to pad out
+        if self.num_iterations < k:
+            return self.data_pairs + ([self.data_pairs[-1]] * (k-self.num_iterations))
+        else:
+            return self.data_pairs[:k]
 
 class DataReader(Dataset):
     all_traj_data = []
@@ -43,19 +51,27 @@ class DataReader(Dataset):
     def __init__(
             self, 
             read_file, 
-            k_last_iters=1000, 
+            k_last_iters=1000,
+            k_first_iters=None, 
             store_transform=None, 
             return_transformation=False, 
             store_float_state=False, 
             return_float_state=False, 
             verbose_freq=None, 
-            max_ep_load=None
+            max_ep_load=None,
+            debug_print=False
     ):
         super().__init__()
         self.all_traj_data = []
         
         # When fetching a traj, will get the last k iterations of it
         self.k_last_iters = k_last_iters
+
+        # If a k_first_iters was given, use that instead
+        self.k_first_iters = k_first_iters
+        self.use_first_k = False
+        if self.k_first_iters is not None:
+            self.user_first_k = True
     
         # If passed, will use transformation on the state
         self.store_transform = store_transform
@@ -63,6 +79,8 @@ class DataReader(Dataset):
 
         self.return_transform = return_transformation
         self.return_float_state = return_float_state
+
+        trajectory_lengths = []
 
         # Processes the entire file and stores it into the all_traj_data field
         with h5py.File(read_file) as file:
@@ -101,6 +119,8 @@ class DataReader(Dataset):
                 read_reward_to_go = episode["reward_to_go"][()]
                 read_timestep = episode["timestep"][()]
 
+                trajectory_lengths.append(read_actions.shape[0])
+
                 if len(read_actions) == 0:
                     continue
 
@@ -109,14 +129,23 @@ class DataReader(Dataset):
                 for i in range(0, len(read_actions)):
                     traj_data.add_iteration(read_actions[i], read_rewards[i], read_states[i+1], read_reward_to_go[i], read_timestep[i], read_done[i])
                 
-                self.all_traj_data.append(traj_data)     
+                self.all_traj_data.append(traj_data)   
+
+        # If debug print, print out some stats on the trajectory data
+        print("Average trjectory length: ", np.mean(trajectory_lengths))
+        print("Median trajectory length: ", np.median(trajectory_lengths))
+        print("Max trajectory length: ", np.max(trajectory_lengths))
+        print("Min trajectory length: ", np.min(trajectory_lengths))
 
     def __len__(self):
         return len(self.all_traj_data)
     
     def __getitem__(self, idx):
         traj_data = self.all_traj_data[idx]
-        traj_pairs = traj_data.fetch_last_k(self.k_last_iters)
+        if self.use_first_k:
+            traj_pairs = traj_data.fetch_first_k(self.k_first_iters)
+        else:
+            traj_pairs = traj_data.fetch_last_k(self.k_last_iters)
 
         # States already stored transformed, so just stack them and apply return transform
         states = torch.stack([t[0] for t in traj_pairs])

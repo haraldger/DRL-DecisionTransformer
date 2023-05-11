@@ -69,6 +69,8 @@ def run():
     print("Evaluation frequency: ", config['evaluation_frequency_dt'])
     print("Learning rate: ", config['learning_rate_dt'])
 
+    # TODO: trying out first k iters rather than last k
+
     print("Loading data...")
     reader = DataReader(
         config['input_trajectory_path'], 
@@ -76,9 +78,10 @@ def run():
         store_float_state=False,
         return_transformation=image_transformation_just_norm,
         return_float_state=True, 
-        k_last_iters=1024,
+        k_first_iters=1024,
         verbose_freq=50,
-        max_ep_load=config['data_trajectories']
+        max_ep_load=config['data_trajectories'],
+        debug_print=True
     )
 
     print("Starting training...")
