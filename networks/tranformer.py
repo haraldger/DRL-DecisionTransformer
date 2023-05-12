@@ -1,4 +1,5 @@
-import numpy 
+import numpy as np
+import sys 
 import math
 import torch
 from torch import nn 
@@ -64,6 +65,7 @@ class AttentionHead(nn.Module):
             mask = torch.ones_like(scaled_compatibility) * float('-inf')
             mask = torch.triu(mask, 1)
             masked_compatibility = scaled_compatibility + mask
+            # masked_compatibility[:,:,0,0] = 0.1
             attention_scores = self.softmax(masked_compatibility)
         else:
             attention_scores = self.softmax(scaled_compatibility)
@@ -248,8 +250,8 @@ class DecisionTransformer(nn.Module):
         stacked_transformer_output = stacked_data.reshape(batch_size, seq_length, 3, self.embedding_dim).permute(0, 2, 1, 3)
 
         # # get predictions
-        # return_preds = self.predict_return(x[:,0])  # predict next return given state and action
-        # state_preds = self.predict_state(x[:,1])    # predict next state given state and action
-        action_preds = self.predict_action(stacked_transformer_output[:,2])  # predict next action given state
+        # return_preds = self.predict_return(x[:,2])  # predict next return given state and action
+        # state_preds = self.predict_state(x[:,2])    # predict next state given state and action
+        action_preds = self.predict_action(stacked_transformer_output[:,1])  # predict next action given state
 
         return action_preds
