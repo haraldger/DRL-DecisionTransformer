@@ -90,7 +90,7 @@ def run():
     dt_model.train(
         dataset=reader,
         num_epochs=config['num_epochs'],
-        batch_size=1,
+        batch_size=4,
         verbose=config['verbose'],
         print_freq=config['print_frequency']
     )
